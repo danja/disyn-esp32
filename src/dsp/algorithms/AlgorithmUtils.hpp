@@ -3,6 +3,10 @@
 #include <algorithm>
 #include <cmath>
 
+#ifdef TWO_PI
+#undef TWO_PI
+#endif
+
 namespace flues::disyn {
 
 constexpr float TWO_PI = 2.0f * M_PI;

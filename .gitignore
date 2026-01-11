@@ -37,5 +37,8 @@
 *.out
 *.app
 
+# PlatformIO
+.pio/
+
 # debug information files
 *.dwo

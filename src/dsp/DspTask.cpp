@@ -148,13 +148,6 @@ static void Tick()
         lastAlgorithm = params.algorithm;
     }
 
-    if (!isTest)
-    {
-        engine.setAlgorithm(params.algorithm);
-        engine.setParam1(effectiveParam1);
-        engine.setParam2(effectiveParam2);
-        engine.setAttack(params.attack);
-        engine.setRelease(params.decay);
     float reverbSize = clamp01(params.reverbSize + (params.cv2 - 0.5f) * kReverbSizeCvAmount +
                                (params.pot2 - 0.5f) * kReverbSizePotAmount);
     float reverbLevel = clamp01(params.reverbLevel + (params.cv2 - 0.5f) * kReverbLevelCvAmount +
@@ -162,9 +155,16 @@ static void Tick()
     float masterGain = clamp01(params.masterGain + (params.cv2 - 0.5f) * kMasterCvAmount +
                                (params.pot2 - 0.5f) * kMasterPotAmount);
 
-    engine.setReverbSize(reverbSize);
-    engine.setReverbLevel(reverbLevel);
-    engine.setMasterGain(masterGain);
+    if (!isTest)
+    {
+        engine.setAlgorithm(params.algorithm);
+        engine.setParam1(effectiveParam1);
+        engine.setParam2(effectiveParam2);
+        engine.setAttack(params.attack);
+        engine.setRelease(params.decay);
+        engine.setReverbSize(reverbSize);
+        engine.setReverbLevel(reverbLevel);
+        engine.setMasterGain(masterGain);
         engine.setFrequency(frequency);
 
         if (engineGate && !lastGate)

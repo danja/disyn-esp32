@@ -11,7 +11,7 @@ bool AudioOutput::begin(int sampleRate, int bufferLength)
     config.sample_rate = sampleRate;
     config.bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT;
     config.channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT;
-    config.communication_format = I2S_COMM_FORMAT_I2S_MSB;
+    config.communication_format = I2S_COMM_FORMAT_STAND_I2S;
     config.intr_alloc_flags = 0;
     config.dma_buf_count = 8;
     config.dma_buf_len = bufferLength;
