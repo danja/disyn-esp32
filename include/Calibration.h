@@ -10,9 +10,9 @@ struct AdcCalibration {
     bool invert;
 };
 
-constexpr AdcCalibration kCv0Cal{0, 4095, false};
-constexpr AdcCalibration kCv1Cal{0, 4095, false};
-constexpr AdcCalibration kCv2Cal{0, 4095, false};
+constexpr AdcCalibration kCv0Cal{0, 4095, true};
+constexpr AdcCalibration kCv1Cal{0, 4095, true};
+constexpr AdcCalibration kCv2Cal{0, 4095, true};
 constexpr AdcCalibration kPot0Cal{0, 4095, false};
 constexpr AdcCalibration kPot1Cal{0, 4095, false};
 constexpr AdcCalibration kPot2Cal{0, 4095, false};
