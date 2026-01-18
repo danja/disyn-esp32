@@ -11,7 +11,7 @@ bool AudioOutput::begin(int sampleRate, int bufferLength)
     config.sample_rate = sampleRate;
     config.bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT;
     config.channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT;
-    config.communication_format = I2S_COMM_FORMAT_STAND_I2S;
+    config.communication_format = I2S_COMM_FORMAT_STAND_MSB;
     config.intr_alloc_flags = 0;
     config.dma_buf_count = 8;
     config.dma_buf_len = bufferLength;
@@ -20,6 +20,11 @@ bool AudioOutput::begin(int sampleRate, int bufferLength)
     config.fixed_mclk = 0;
 
     if (i2s_driver_install(I2S_NUM_0, &config, 0, nullptr) != ESP_OK)
+    {
+        return false;
+    }
+
+    if (i2s_set_pin(I2S_NUM_0, nullptr) != ESP_OK)
     {
         return false;
     }

@@ -43,10 +43,12 @@ constexpr AlgorithmInfo kAlgorithmInfoList[] = {
     {"N3 XMod", {"M1", 0.0f, 1.0f, false}, {"M2", 0.0f, 1.0f, false}},
     {"N4 Tay", {"T1", 1.0f, 10.0f, true}, {"T2", 1.0f, 10.0f, true}},
     {"Traj", {"Sides", 3.0f, 12.0f, true}, {"Ang", 0.0f, 360.0f, false}},
+    {"Hardware", {"Unused", 0.0f, 1.0f, false}, {"Unused", 0.0f, 1.0f, false}},
     {"TEST", {"Freq", 50.0f, 2000.0f, false}, {"Level", 0.0f, 1.0f, false}},
 };
 
 constexpr size_t kAlgorithmCount = sizeof(kAlgorithmInfoList) / sizeof(kAlgorithmInfoList[0]);
+constexpr uint8_t kHardwareAlgorithmIndex = static_cast<uint8_t>(kAlgorithmCount - 2);
 constexpr uint8_t kTestAlgorithmIndex = static_cast<uint8_t>(kAlgorithmCount - 1);
 
 inline const AlgorithmInfo &GetAlgorithmInfo(uint8_t algorithm)

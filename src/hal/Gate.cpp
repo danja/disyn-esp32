@@ -15,7 +15,7 @@ void Gate::begin(int pinIn, int pinOut)
 
 bool Gate::read() const
 {
-    return digitalRead(pinIn_) == HIGH;
+    return digitalRead(pinIn_) == LOW;
 }
 
 void Gate::write(bool high)

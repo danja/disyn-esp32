@@ -23,6 +23,7 @@ static flues::disyn::DisynEngine engine{kSampleRate};
 static bool lastGate = false;
 static float smoothPitch = 0.0f;
 static float testPhase = 0.0f;
+static float hardwarePhase = 0.0f;
 static uint8_t lastAlgorithm = 0;
 constexpr int kAudioBlockSize = 64;
 static uint16_t audioBlock[kAudioBlockSize * 2] = {};
@@ -133,13 +134,14 @@ static void Tick()
     float pitchCv = clamp01(params.cv2);
     float pitchPot = clamp01(params.pot2);
     float pitchControl = clamp01(pitchCv * kPitchCvMix + pitchPot * kPitchPotMix);
-    constexpr float kPitchAlpha = 0.05f;
+    constexpr float kPitchAlpha = 0.5f;
     smoothPitch = smoothValue(smoothPitch, pitchControl, kPitchAlpha);
     float frequency = 55.0f + smoothPitch * (880.0f - 55.0f);
 
     bool forceContinuous = params.attack <= 0.0f && params.decay <= 0.0f;
     bool engineGate = gateHigh || forceContinuous;
     bool isTest = params.algorithm == disyn::kTestAlgorithmIndex;
+    bool isHardware = params.algorithm == disyn::kHardwareAlgorithmIndex;
 
     if (params.algorithm != lastAlgorithm)
     {
@@ -184,7 +186,20 @@ static void Tick()
         float rightSample = 0.0f;
         outputGain = masterGain;
 
-        if (isTest)
+        if (isHardware)
+        {
+            constexpr float kHardwareFreq = 440.0f;
+            float phaseStep = kHardwareFreq / static_cast<float>(kSampleRate);
+            hardwarePhase += phaseStep;
+            if (hardwarePhase >= 1.0f)
+            {
+                hardwarePhase -= 1.0f;
+            }
+            float tone = hardwarePhase < 0.5f ? 1.0f : -1.0f;
+            leftSample = softClip(tone * outputGain);
+            rightSample = leftSample;
+        }
+        else if (isTest)
         {
             const auto &info = disyn::GetAlgorithmInfo(disyn::kTestAlgorithmIndex);
             float testFreq = disyn::MapNormalized(info.param1, effectiveParam1);

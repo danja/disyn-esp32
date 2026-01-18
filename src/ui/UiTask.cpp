@@ -70,6 +70,10 @@ static uint16_t minInputs[6] = {4095, 4095, 4095, 4095, 4095, 4095};
 static uint16_t maxInputs[6] = {0, 0, 0, 0, 0, 0};
 
 static const char *kInputLabels[6] = {"C0", "C1", "C2", "P0", "P1", "P2"};
+static int algorithmStepAccum = 0;
+constexpr int kAlgorithmStepTicks = 2;
+constexpr float kDefaultStep = 0.1f;
+constexpr float kEnvStep = 0.1f;
 
 static float smoothValue(float current, float target, float alpha)
 {
@@ -114,45 +118,51 @@ static void adjustCurrentValue(int delta)
     {
     case 0:
         {
-            int algorithm = static_cast<int>(params.algorithm) + delta;
-            int maxAlgorithm = static_cast<int>(disyn::kAlgorithmCount) - 1;
-            if (algorithm < 0)
+            algorithmStepAccum += delta;
+            if (std::abs(algorithmStepAccum) >= kAlgorithmStepTicks)
             {
-                algorithm = maxAlgorithm;
+                int step = (algorithmStepAccum > 0) ? 1 : -1;
+                algorithmStepAccum = 0;
+                int algorithm = static_cast<int>(params.algorithm) + step;
+                int maxAlgorithm = static_cast<int>(disyn::kAlgorithmCount) - 1;
+                if (algorithm < 0)
+                {
+                    algorithm = maxAlgorithm;
+                }
+                if (algorithm > maxAlgorithm)
+                {
+                    algorithm = 0;
+                }
+                params.algorithm = static_cast<uint8_t>(algorithm);
             }
-            if (algorithm > maxAlgorithm)
-            {
-                algorithm = 0;
-            }
-            params.algorithm = static_cast<uint8_t>(algorithm);
         }
         break;
     case 1:
-        params.attack = clamp(params.attack + delta * 0.01f, 0.0f, 1.0f);
+        params.attack = clamp(params.attack + delta * kEnvStep, 0.0f, 1.0f);
         break;
     case 2:
-        params.decay = clamp(params.decay + delta * 0.01f, 0.0f, 1.0f);
+        params.decay = clamp(params.decay + delta * kEnvStep, 0.0f, 1.0f);
         break;
     case 3:
-        params.reverbSize = clamp(params.reverbSize + delta * 0.01f, 0.0f, 1.0f);
+        params.reverbSize = clamp(params.reverbSize + delta * kDefaultStep, 0.0f, 1.0f);
         break;
     case 4:
-        params.reverbLevel = clamp(params.reverbLevel + delta * 0.01f, 0.0f, 1.0f);
+        params.reverbLevel = clamp(params.reverbLevel + delta * kDefaultStep, 0.0f, 1.0f);
         break;
     case 5:
         if (!isUnusedParam(info.param1.label))
         {
-            params.param1 = clamp(params.param1 + delta * 0.01f, 0.0f, 1.0f);
+            params.param1 = clamp(params.param1 + delta * kDefaultStep, 0.0f, 1.0f);
         }
         break;
     case 6:
         if (!isUnusedParam(info.param2.label))
         {
-            params.param2 = clamp(params.param2 + delta * 0.01f, 0.0f, 1.0f);
+            params.param2 = clamp(params.param2 + delta * kDefaultStep, 0.0f, 1.0f);
         }
         break;
     case 7:
-        params.masterGain = clamp(params.masterGain + delta * 0.01f, 0.0f, 1.0f);
+        params.masterGain = clamp(params.masterGain + delta * kDefaultStep, 0.0f, 1.0f);
         break;
     case 8:
         break;
@@ -261,7 +271,7 @@ static void Tick()
     float pot1 = disyn::NormalizeAdc(rawPot1, disyn::kPot1Cal);
     float pot2 = disyn::NormalizeAdc(rawPot2, disyn::kPot2Cal);
 
-    constexpr float kAlpha = 0.1f;
+    constexpr float kAlpha = 0.8f;
     smoothCv0 = smoothValue(smoothCv0, cv0, kAlpha);
     smoothCv1 = smoothValue(smoothCv1, cv1, kAlpha);
     smoothCv2 = smoothValue(smoothCv2, cv2, kAlpha);

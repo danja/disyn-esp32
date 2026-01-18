@@ -21,10 +21,10 @@ void Encoder::begin(int pinClk, int pinDt, int pinSw)
 void Encoder::update()
 {
     int clk = digitalRead(pinClk_);
-    if (clk != lastClk_)
+    if (clk == LOW && lastClk_ == HIGH)
     {
         int dt = digitalRead(pinDt_);
-        if (dt != clk)
+        if (dt == HIGH)
         {
             ++position_;
         }
