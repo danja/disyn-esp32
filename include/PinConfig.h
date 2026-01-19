@@ -14,9 +14,9 @@ constexpr int kPinCv0 = 36;
 constexpr int kPinCv1 = 39;
 constexpr int kPinCv2 = 32;
 
-constexpr int kPinPot0 = 33;
+constexpr int kPinPot0 = 4;
 constexpr int kPinPot1 = 27;
-constexpr int kPinPot2 = 4;
+constexpr int kPinPot2 = 33;
 
 constexpr int kPinGateIn = 18;
 constexpr int kPinGateOut = 19;

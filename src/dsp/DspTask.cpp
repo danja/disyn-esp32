@@ -33,15 +33,7 @@ static bool audioOk = true;
 
 static float softClip(float value)
 {
-    if (value > 1.0f)
-    {
-        value = 1.0f;
-    }
-    if (value < -1.0f)
-    {
-        value = -1.0f;
-    }
-    return std::tanh(value * 1.2f);
+    return std::tanh(value);
 }
 
 static float clamp01(float value)
@@ -131,8 +123,8 @@ static void Tick()
     effectiveParam2 = clamp01(params.param2 + (params.cv1 - 0.5f) * kParamModAmount + (params.pot1 - 0.5f) * kParamModAmount);
     }
 
-    float pitchCv = clamp01(params.cv2);
-    float pitchPot = clamp01(params.pot2);
+    float pitchCv = clamp01(1.0f - params.cv2);
+    float pitchPot = clamp01(1.0f - params.pot2);
     float pitchControl = clamp01(pitchCv * kPitchCvMix + pitchPot * kPitchPotMix);
     constexpr float kPitchAlpha = 0.5f;
     smoothPitch = smoothValue(smoothPitch, pitchControl, kPitchAlpha);

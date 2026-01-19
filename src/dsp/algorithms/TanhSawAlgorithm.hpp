@@ -28,7 +28,8 @@ public:
         const float cosine = std::cos(secondaryPhase * TWO_PI);
         const float saw = square + cosine * (1.0f - square * square) * edge;
 
-        const float output = square * (1.0f - blend) + saw * blend;
+        const float raw = square * (1.0f - blend) + saw * blend;
+        const float output = std::tanh(raw);
         const float secondary = square;
         return {output, secondary};
     }
