@@ -102,7 +102,6 @@ static void Tick()
     }
 
     bool gateHigh = gate.read();
-    gate.write(gateHigh);
 
     const auto &algoInfo = disyn::GetAlgorithmInfo(params.algorithm);
     if (isUnusedParam(algoInfo.param1.label))
@@ -221,6 +220,17 @@ static void Tick()
         audioBlock[i * 2] = left;
         audioBlock[i * 2 + 1] = right;
     }
+
+    bool soundPlaying = engine.getIsPlaying();
+    if (isHardware)
+    {
+        soundPlaying = true;
+    }
+    else if (isTest)
+    {
+        soundPlaying = engineGate;
+    }
+    gate.write(!soundPlaying);
 
     size_t bytesWritten = 0;
     if (!audioOut.write(audioBlock, sizeof(audioBlock), &bytesWritten))
