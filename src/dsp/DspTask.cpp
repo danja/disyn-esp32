@@ -212,8 +212,18 @@ static void Tick()
         else
         {
             auto sample = engine.process();
-            leftSample = softClip(sample.primary * outputGain);
-            rightSample = softClip(sample.secondary * outputGain);
+            float primary = sample.primary;
+            float secondary = sample.secondary;
+            if (!(primary > -kSampleGuardLimit && primary < kSampleGuardLimit))
+            {
+                primary = 0.0f;
+            }
+            if (!(secondary > -kSampleGuardLimit && secondary < kSampleGuardLimit))
+            {
+                secondary = 0.0f;
+            }
+            leftSample = softClip(primary * outputGain * kGlobalPreGain);
+            rightSample = softClip(secondary * outputGain * kGlobalPreGain);
         }
         uint16_t left = sampleToDac(leftSample);
         uint16_t right = sampleToDac(rightSample);

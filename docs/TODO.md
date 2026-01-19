@@ -1,3 +1,6 @@
+ Please build/flash and test those unstable algorithms again. If they’re still too hot, increase
+  kAlgorithmLimitDrive (e.g. 2.0–3.0). If they sound too damped, lower it (e.g. 1.2).
+
 2026-01-19
 
 # Unstable algorithms

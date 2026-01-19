@@ -13,6 +13,9 @@ When hot signals hit the `softClip()` function in DspTask.cpp, `tanh()` saturate
 ### DspTask.cpp
 - Removed hard clipping before `tanh()` in `softClip()` - was defeating soft clipping purpose
 - Original code clamped to ±1 then applied `tanh(value * 1.2)`, now just uses `tanh(value)`
+- Added a range guard before `softClip()` to zero out NaN/Inf or absurdly large
+  samples using simple comparisons only (ESP32-safe).
+- The guard limit is configurable via `kSampleGuardLimit` in `include/Config.h`.
 
 ### TanhSawAlgorithm.hpp
 - Added `tanh()` to final output to match TanhSquare's behavior
