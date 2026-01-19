@@ -14,6 +14,8 @@ Keep these in mind when modifying DSP or utilities.
 - NaN/Inf guards that use `std::numeric_limits`, `std::isfinite`, or manual
   IEEE-754 checks in the oscillator output path appear to trigger the same
   failure, likely due to the switch refactor or the guard itself.
+- Adding draw helpers and a scope screen (drawLine/drawPixel use) in the UI
+  caused a blank display on ESP32.
 
 ## Notes
 - Plain UI-only changes (menu layout, label tweaks) and encoder debounce are

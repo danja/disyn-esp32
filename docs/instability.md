@@ -24,6 +24,9 @@ When hot signals hit the `softClip()` function in DspTask.cpp, `tanh()` saturate
 - Algorithms to check: DSF variants, Combination algorithms, Novel algorithms
 - Consider adding output limiting to OscillatorModule::process() as a safety net
 - Note: `std::isfinite()` caused system crashes on ESP32 - avoid using it
+- Additional note: attempts to add NaN/Inf guards and output sanitizers in
+  `OscillatorModule::process()` have caused blank screen/system crashes on
+  ESP32. See `docs/danger-zones.md` before reattempting.
 
 ## Testing
 Select "Hardware" algorithm for a known-good 440Hz square wave reference. Use "TEST" algorithm with adjustable frequency/level for debugging.

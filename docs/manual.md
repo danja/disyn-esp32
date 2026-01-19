@@ -12,7 +12,7 @@ Disyn ESP32 is a Eurorack module built around an ESP32 DevKit V1. It runs a dual
 The OLED menu shows a short list with the current selection indicated by `>`.
 
 Menu entries (abbreviated for OLED fit):
-- **Alg**: Algorithm selection.
+- **Algorithm**: Algorithm selection (title line shows the algorithm name).
 - **Atk**: Attack (0.00–1.00).
 - **Dec**: Decay (0.00–1.00).
 - **Rev Sz**: Reverb size (0.00–1.00).
@@ -22,26 +22,26 @@ Menu entries (abbreviated for OLED fit):
 - **Mast**: Master gain (0.00–1.00).
 - **Stat**: Status/diagnostics.
 
-## Algorithms (Abbreviated)
-- **Dir Pulse**: Dirichlet Pulse (Harm, Tilt)
-- **DSF S**: DSF Single (Dec, Rat)
-- **DSF D**: DSF Double (Dec, Rat)
-- **Tanh Sq**: Tanh Square (Drv, Trim)
+## Algorithms (Display Names)
+- **Dirichlet**: Dirichlet Pulse (Harm, Tilt)
+- **DSF Single**: DSF Single (Dec, Rat)
+- **DSF Double**: DSF Double (Dec, Rat)
+- **Tanh Square**: Tanh Square (Drv, Trim)
 - **Tanh Saw**: Tanh Saw (Drv, Blend)
 - **PAF**: Phase Aligned Formant (Form, BW)
 - **Mod FM**: Modified FM (Idx, Rat)
-- **C1 Hyb**: Combo 1 Hybrid Formant (Idx)
-- **C2 Cas**: Combo 2 Cascaded (DSF Dec, Asym)
-- **C3 Par**: Combo 3 Parallel Bank (Idx)
-- **C4 Fdb**: Combo 4 Feedback (Idx, Fb)
-- **C5 Mor**: Combo 5 Morphing (Morph, Char)
-- **C6 Inh**: Combo 6 Inharmonic (DSF Dec, PAF Sh)
-- **C7 Flt**: Combo 7 Adaptive Filter (Cut, Res)
-- **N1 Mul**: Novel 1 Multistage (Tanh, Exp)
-- **N2 Asy**: Novel 2 Frequency Asym (LowR, HiR)
-- **N3 XMod**: Novel 3 Cross Mod (M1, M2)
-- **N4 Tay**: Novel 4 Taylor (T1, T2)
-- **Traj**: Trajectory (Sides, Ang)
+- **Formant**: Combo 1 Hybrid Formant (Idx, Space)
+- **Cascade**: Combo 2 Cascaded (DSF Dec, Asym)
+- **Banks**: Combo 3 Parallel Bank (Idx, Mix)
+- **Feedback**: Combo 4 Feedback (Idx, Fb)
+- **Morphing**: Combo 5 Morphing (Morph, Char)
+- **Inharmonic**: Combo 6 Inharmonic (DSF Dec, PAF Sh)
+- **AFilter**: Combo 7 Adaptive Filter (Cut, Res)
+- **Multi**: Novel 1 Multistage (Tanh, Exp)
+- **Asym**: Novel 2 Frequency Asym (LowR, HiR)
+- **Cross**: Novel 3 Cross Mod (M1, M2)
+- **Taylor**: Novel 4 Taylor (T1, T2)
+- **Trajectory**: Trajectory (Sides, Ang)
 - **TEST**: Test tone + diagnostics (Freq, Level)
 
 ## CV/Pot Modulation (Default)
@@ -77,7 +77,7 @@ When **Alg = TEST** and **Stat** is selected, the status page switches to calibr
    - Verify no stuck button due to wiring/pullups.
 4. **Gate IO**
    - Verify Gate In changes (use a square wave or manual signal).
-   - Gate Out should mirror Gate In.
+   - Gate Out should go low while sound is playing and high when silent.
 5. **ADC Inputs**
    - Set **Alg = TEST**, go to **Stat**.
    - Sweep CV/Pots and confirm raw min/max update.
