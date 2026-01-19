@@ -15,7 +15,10 @@ void Encoder::begin(int pinClk, int pinDt, int pinSw)
     pinMode(pinSw_, INPUT_PULLUP);
 
     lastClk_ = digitalRead(pinClk_);
-    lastSw_ = digitalRead(pinSw_);
+    lastSwRaw_ = digitalRead(pinSw_);
+    stableSw_ = lastSwRaw_;
+    lastMoveUs_ = micros();
+    lastSwChangeMs_ = millis();
 }
 
 void Encoder::update()
@@ -23,25 +26,43 @@ void Encoder::update()
     int clk = digitalRead(pinClk_);
     if (clk == LOW && lastClk_ == HIGH)
     {
-        int dt = digitalRead(pinDt_);
-        if (dt == HIGH)
+        uint32_t now = micros();
+        constexpr uint32_t kRotationDebounceUs = 1000;
+        if (now - lastMoveUs_ >= kRotationDebounceUs)
         {
-            ++position_;
-        }
-        else
-        {
-            --position_;
+            int dt = digitalRead(pinDt_);
+            if (dt == HIGH)
+            {
+                ++position_;
+            }
+            else
+            {
+                --position_;
+            }
+            lastMoveUs_ = now;
         }
     }
     lastClk_ = clk;
 
-    int sw = digitalRead(pinSw_);
-    if (lastSw_ == HIGH && sw == LOW)
+    int swRaw = digitalRead(pinSw_);
+    if (swRaw != lastSwRaw_)
     {
-        pressedEvent_ = true;
+        lastSwRaw_ = swRaw;
+        lastSwChangeMs_ = millis();
     }
-    lastSw_ = sw;
-    down_ = (sw == LOW);
+    else
+    {
+        constexpr uint32_t kButtonDebounceMs = 20;
+        if (millis() - lastSwChangeMs_ >= kButtonDebounceMs && swRaw != stableSw_)
+        {
+            stableSw_ = swRaw;
+            if (stableSw_ == LOW)
+            {
+                pressedEvent_ = true;
+            }
+        }
+    }
+    down_ = (stableSw_ == LOW);
 }
 
 int32_t Encoder::position() const

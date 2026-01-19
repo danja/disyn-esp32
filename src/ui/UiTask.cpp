@@ -22,7 +22,7 @@ struct MenuItem
 };
 
 constexpr std::array<MenuItem, 9> kMenuItems = {{
-    {"Alg"},
+    {""},
     {"Atk"},
     {"Dec"},
     {"Rev Sz"},
@@ -74,6 +74,7 @@ static int algorithmStepAccum = 0;
 constexpr int kAlgorithmStepTicks = 2;
 constexpr float kDefaultStep = 0.1f;
 constexpr float kEnvStep = 0.1f;
+constexpr int kVisibleItems = 8;
 
 static float smoothValue(float current, float target, float alpha)
 {
@@ -393,9 +394,9 @@ static void Tick()
         {
             topIndex = currentIndex;
         }
-        if (currentIndex >= topIndex + 4)
+        if (currentIndex >= topIndex + kVisibleItems)
         {
-            topIndex = currentIndex - 3;
+            topIndex = currentIndex - (kVisibleItems - 1);
         }
     }
 
@@ -473,7 +474,7 @@ static void Tick()
         display.display();
         return;
     }
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < kVisibleItems; ++i)
     {
         int itemIndex = topIndex + i;
         if (itemIndex >= static_cast<int>(kMenuItems.size()))
@@ -501,9 +502,16 @@ static void Tick()
             display.print(" ");
         }
 
-        display.print(label);
-        display.print(" ");
-        display.println(valueBuffer);
+        if (itemIndex == 0)
+        {
+            display.println(valueBuffer);
+        }
+        else
+        {
+            display.print(label);
+            display.print(" ");
+            display.println(valueBuffer);
+        }
     }
     display.display();
 }

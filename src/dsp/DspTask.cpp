@@ -123,6 +123,7 @@ static void Tick()
     effectiveParam2 = clamp01(params.param2 + (params.cv1 - 0.5f) * kParamModAmount + (params.pot1 - 0.5f) * kParamModAmount);
     }
 
+
     float pitchCv = clamp01(1.0f - params.cv2);
     float pitchPot = clamp01(1.0f - params.pot2);
     float pitchControl = clamp01(pitchCv * kPitchCvMix + pitchPot * kPitchPotMix);
