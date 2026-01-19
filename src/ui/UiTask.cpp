@@ -75,6 +75,15 @@ constexpr int kAlgorithmStepTicks = 2;
 constexpr float kDefaultStep = 0.1f;
 constexpr float kEnvStep = 0.1f;
 constexpr int kVisibleItems = 8;
+constexpr int kAlgIndex = 0;
+constexpr int kAtkIndex = 1;
+constexpr int kDecIndex = 2;
+constexpr int kRevSzIndex = 3;
+constexpr int kRevLvIndex = 4;
+constexpr int kP1Index = 5;
+constexpr int kP2Index = 6;
+constexpr int kMastIndex = 7;
+constexpr int kStatusIndex = 8;
 
 static float smoothValue(float current, float target, float alpha)
 {
@@ -117,7 +126,7 @@ static void adjustCurrentValue(int delta)
     const auto &info = disyn::GetAlgorithmInfo(params.algorithm);
     switch (currentIndex)
     {
-    case 0:
+    case kAlgIndex:
         {
             algorithmStepAccum += delta;
             if (std::abs(algorithmStepAccum) >= kAlgorithmStepTicks)
@@ -138,34 +147,34 @@ static void adjustCurrentValue(int delta)
             }
         }
         break;
-    case 1:
+    case kAtkIndex:
         params.attack = clamp(params.attack + delta * kEnvStep, 0.0f, 1.0f);
         break;
-    case 2:
+    case kDecIndex:
         params.decay = clamp(params.decay + delta * kEnvStep, 0.0f, 1.0f);
         break;
-    case 3:
+    case kRevSzIndex:
         params.reverbSize = clamp(params.reverbSize + delta * kDefaultStep, 0.0f, 1.0f);
         break;
-    case 4:
+    case kRevLvIndex:
         params.reverbLevel = clamp(params.reverbLevel + delta * kDefaultStep, 0.0f, 1.0f);
         break;
-    case 5:
+    case kP1Index:
         if (!isUnusedParam(info.param1.label))
         {
             params.param1 = clamp(params.param1 + delta * kDefaultStep, 0.0f, 1.0f);
         }
         break;
-    case 6:
+    case kP2Index:
         if (!isUnusedParam(info.param2.label))
         {
             params.param2 = clamp(params.param2 + delta * kDefaultStep, 0.0f, 1.0f);
         }
         break;
-    case 7:
+    case kMastIndex:
         params.masterGain = clamp(params.masterGain + delta * kDefaultStep, 0.0f, 1.0f);
         break;
-    case 8:
+    case kStatusIndex:
         break;
     default:
         break;
@@ -177,22 +186,22 @@ static void formatValue(int index, char *buffer, size_t bufferSize)
     const auto &info = disyn::GetAlgorithmInfo(params.algorithm);
     switch (index)
     {
-    case 0:
+    case kAlgIndex:
         snprintf(buffer, bufferSize, "%s", info.name);
         break;
-    case 1:
+    case kAtkIndex:
         dtostrf(params.attack, 0, 2, buffer);
         break;
-    case 2:
+    case kDecIndex:
         dtostrf(params.decay, 0, 2, buffer);
         break;
-    case 3:
+    case kRevSzIndex:
         dtostrf(params.reverbSize, 0, 2, buffer);
         break;
-    case 4:
+    case kRevLvIndex:
         dtostrf(params.reverbLevel, 0, 2, buffer);
         break;
-    case 5:
+    case kP1Index:
         if (isUnusedParam(info.param1.label))
         {
             snprintf(buffer, bufferSize, "-");
@@ -210,7 +219,7 @@ static void formatValue(int index, char *buffer, size_t bufferSize)
             }
         }
         break;
-    case 6:
+    case kP2Index:
         if (isUnusedParam(info.param2.label))
         {
             snprintf(buffer, bufferSize, "-");
@@ -228,10 +237,10 @@ static void formatValue(int index, char *buffer, size_t bufferSize)
             }
         }
         break;
-    case 7:
+    case kMastIndex:
         dtostrf(params.masterGain, 0, 2, buffer);
         break;
-    case 8:
+    case kStatusIndex:
         snprintf(buffer, bufferSize, "-");
         break;
     default:
@@ -371,7 +380,7 @@ static void Tick()
     }
 
     bool suppressClick = false;
-    if (currentIndex == 8 && down && !longPressHandled && pressStartMs != 0)
+    if (currentIndex == kStatusIndex && down && !longPressHandled && pressStartMs != 0)
     {
         if (millis() - pressStartMs > 1000)
         {
@@ -418,7 +427,7 @@ static void Tick()
     display.clear();
     display.setCursor(0, 0);
 
-    if (currentIndex == 8)
+    if (currentIndex == kStatusIndex)
     {
         char line[22] = {0};
 

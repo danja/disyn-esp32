@@ -5,7 +5,7 @@
 
 # Unstable algorithms
 
-See docs/instability.md
+See docs/danger-zones.md
 
 The following suffer from intermittentent instability, I believe caused by NaN values or similar. Guards should be put in place as necessary (ESP32 doesn't support isInfinity - check) :
 

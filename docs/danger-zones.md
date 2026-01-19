@@ -17,12 +17,6 @@ Keep these in mind when modifying DSP or utilities.
 - Adding draw helpers and a scope screen (drawLine/drawPixel use) in the UI
   caused a blank display on ESP32.
 
-## Notes
-- Plain UI-only changes (menu layout, label tweaks) and encoder debounce are
-  stable.
-- Gate output inversion in `src/dsp/DspTask.cpp` is stable.
-- Label-only changes in `include/AlgorithmInfo.h` are stable.
-
 ## Next investigations
 - Find the minimal change inside `OscillatorModule::process()` that triggers
   the crash (local variable? stack usage? sanitizer codegen?).

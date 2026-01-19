@@ -222,6 +222,11 @@ static void Tick()
             {
                 secondary = 0.0f;
             }
+            if (kPreClipTanhDrive > 0.0f)
+            {
+                primary = std::tanh(primary * kPreClipTanhDrive);
+                secondary = std::tanh(secondary * kPreClipTanhDrive);
+            }
             leftSample = softClip(primary * outputGain * kGlobalPreGain);
             rightSample = softClip(secondary * outputGain * kGlobalPreGain);
         }
