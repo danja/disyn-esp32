@@ -15,9 +15,14 @@ QueueHandle_t disyn::gStatusQueue = nullptr;
 void setup()
 {
     Serial.begin(115200);
+    Serial.println("BOOT: setup start");
 
     disyn::gParamQueue = xQueueCreate(1, sizeof(disyn::ParamMessage));
     disyn::gStatusQueue = xQueueCreate(1, sizeof(disyn::StatusMessage));
+    Serial.print("BOOT: queues ");
+    Serial.print(disyn::gParamQueue != nullptr ? "ok" : "fail");
+    Serial.print(" / ");
+    Serial.println(disyn::gStatusQueue != nullptr ? "ok" : "fail");
 
     xTaskCreatePinnedToCore(
         disyn::dsp::Task,
@@ -27,6 +32,7 @@ void setup()
         2,
         &dspHandle,
         1);
+    Serial.println("BOOT: DSP task created");
 
     xTaskCreatePinnedToCore(
         disyn::ui::Task,
@@ -36,6 +42,7 @@ void setup()
         2,
         &uiHandle,
         0);
+    Serial.println("BOOT: UI task created");
 }
 
 void loop()

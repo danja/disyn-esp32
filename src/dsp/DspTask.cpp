@@ -81,12 +81,14 @@ static uint16_t sampleToDac(float sample)
 
 static void Init()
 {
+    Serial.println("DSP: init start");
     gate.begin(kPinGateIn, kPinGateOut);
     if (!audioOut.begin(kSampleRate, kAudioBlockSize))
     {
         ++underrunCount;
         audioOk = false;
     }
+    Serial.println("DSP: init done");
 }
 
 static void Tick()

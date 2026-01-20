@@ -19,10 +19,37 @@ wavefolder was a no-op or used only in `DspTask.cpp`.
 ## Current state
 All wavefolder changes reverted; repo restored to last known-good boot state.
 
-## Next steps to try
-1) Confirm stability of the clean build/flash (no wavefolder references).
-2) If stable, reintroduce the wavefolder incrementally but outside the DSP task
-   (e.g., in a separate test build or using a dummy inline operation with no
-   new includes) to isolate the trigger.
-3) If any wavefolder usage causes crashes, investigate ESP32 toolchain/ABI
-   issues or memory constraints in DSP code paths.
+## Next steps (small-step reintroduction)
+We will reintroduce wavefolder in tiny steps, flashing between each step to
+confirm stability. Stop at the first crash and log the last-good step.
+
+Step A: Baseline (done)
+- No wavefolder code referenced; confirm boot stability.
+
+Step B: Add module file only
+- Add `WavefolderModule.hpp` but do not include it anywhere.
+
+Step C: Include-only in DSP task
+- `#include "dsp/modules/WavefolderModule.hpp"` in `DspTask.cpp`, no usage.
+
+Step D: Instantiate-only in DSP task
+- Add a `static WavefolderModule` in `DspTask.cpp`, no usage.
+
+Step E: No-op call in DSP task
+- Call `wavefolder.process(sample.primary, 0.0f)` and ignore the result.
+
+Step F: Apply no-op passthrough
+- Replace `primary`/`secondary` with the wavefolder output using amount 0.0f.
+
+Step G: Use amount from pot0/cv0
+- Pipe `wavefoldAmount` to the wavefolder in `DspTask.cpp` (post-engine).
+
+Step H: Move wavefolder earlier
+- Move wavefolder into `DisynEngine` after oscillator (minimal math).
+
+Step I: Enable real fold math
+- Switch to full folding implementation.
+
+Notes:
+- Add a short `Serial.println("WF: step X")` when changing steps to make
+  boot diagnostics easier.

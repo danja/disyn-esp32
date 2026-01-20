@@ -251,9 +251,11 @@ static void formatValue(int index, char *buffer, size_t bufferSize)
 
 static void Init()
 {
+    Serial.println("UI: init start");
     display.begin();
     encoder.begin(kPinEncClk, kPinEncDt, kPinEncSw);
     adc.begin();
+    Serial.println("UI: init done");
 }
 
 static void Tick()
