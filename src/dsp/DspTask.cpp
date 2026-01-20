@@ -20,6 +20,7 @@ static disyn::Parameters params;
 static float effectiveParam1 = 0.0f;
 static float effectiveParam2 = 0.0f;
 static flues::disyn::DisynEngine engine{kSampleRate};
+static float wavefoldAmount = 0.0f;
 static bool lastGate = false;
 static float smoothPitch = 0.0f;
 static float testPhase = 0.0f;
@@ -112,7 +113,7 @@ static void Tick()
     }
     else
     {
-    effectiveParam1 = clamp01(params.param1 + (params.cv0 - 0.5f) * kParamModAmount + (params.pot0 - 0.5f) * kParamModAmount);
+        effectiveParam1 = clamp01(params.param1 + (params.cv1 - 0.5f) * kParamModAmount + (params.pot1 - 0.5f) * kParamModAmount);
     }
 
     if (isUnusedParam(algoInfo.param2.label))
@@ -121,8 +122,10 @@ static void Tick()
     }
     else
     {
-    effectiveParam2 = clamp01(params.param2 + (params.cv1 - 0.5f) * kParamModAmount + (params.pot1 - 0.5f) * kParamModAmount);
+        effectiveParam2 = clamp01(params.param2);
     }
+
+    wavefoldAmount = clamp01(params.pot0 + (params.cv0 - 0.5f) * kParamModAmount);
 
 
     float pitchCv = clamp01(1.0f - params.cv2);
@@ -156,6 +159,7 @@ static void Tick()
         engine.setAlgorithm(params.algorithm);
         engine.setParam1(effectiveParam1);
         engine.setParam2(effectiveParam2);
+        engine.setWavefoldAmount(wavefoldAmount);
         engine.setAttack(params.attack);
         engine.setRelease(params.decay);
         engine.setReverbSize(reverbSize);

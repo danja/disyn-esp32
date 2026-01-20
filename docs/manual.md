@@ -7,6 +7,9 @@ Disyn ESP32 is a Eurorack module built around an ESP32 DevKit V1. It runs a dual
 - **Encoder rotate**: Adjusts the current parameter value.
 - **Encoder press**: Cycles to the next parameter.
 - **Gate In**: Triggers the envelope; when Attack=0 and Decay=0, the output is continuous at max level.
+- **Pot0/CV0**: Wavefolder amount (post-oscillator).
+- **Pot1/CV1**: Algorithm Param 1 modulation.
+- **Pot2/CV2**: Pitch control.
 
 ## UI Pages
 The OLED menu shows a short list with the current selection indicated by `>`.
@@ -45,12 +48,19 @@ Menu entries (abbreviated for OLED fit):
 - **TEST**: Test tone + diagnostics (Freq, Level)
 
 ## CV/Pot Modulation (Default)
-- **CV0/Pot0** → Param 1 (normalized, moderate depth)
-- **CV1/Pot1** → Param 2 (normalized, moderate depth)
-- **CV2/Pot2** → Pitch (dominant)
-- **CV2/Pot2** → Reverb size/level (light), Master gain (very light)
+- **CV0/Pot0** → Wavefolder amount
+- **CV1/Pot1** → Param 1 (normalized, moderate depth)
+- **CV2/Pot2** → Pitch
+- **Param 2** → Encoder only (no CV/Pot modulation)
+- **Reverb size/level** and **Master gain** modulation from CV2/Pot2 are disabled (zeroed in `include/Config.h`)
 
 These amounts are defined in `include/Config.h` and can be tuned.
+
+## Signal Path
+Oscillator → Wavefolder → Envelope → Reverb → Master gain
+
+## Notes
+- The wavefolder is new and may destabilize certain algorithms. If you hear unstable or low-frequency artifacts, reduce wavefolder amount or disable it by rebuilding with passthrough.
 
 ## Status Page
 The Status page shows:

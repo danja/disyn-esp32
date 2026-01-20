@@ -6,6 +6,7 @@
 #include "algorithms/AlgorithmOutput.hpp"
 #include "algorithms/AlgorithmTypes.hpp"
 #include "modules/OscillatorModule.hpp"
+#include "modules/WavefolderModule.hpp"
 #include "modules/EnvelopeModule.hpp"
 #include "modules/ReverbModule.hpp"
 
@@ -16,6 +17,7 @@ public:
     explicit DisynEngine(float sampleRate = 44100.0f)
         : sampleRate(sampleRate),
           oscillator(sampleRate),
+          wavefolder(),
           envelope(sampleRate),
           reverbLeft(sampleRate),
           reverbRight(sampleRate),
@@ -24,6 +26,7 @@ public:
           param1(0.55f),  // Default drive for tanh square
           param2(0.5f),   // Default trim for tanh square
           param3(0.5f),
+          wavefoldAmount(0.0f),
           masterGain(0.8f),
           velocity(1.0f),
           gate(false),
@@ -59,13 +62,23 @@ public:
 
         // Generate oscillator sample
         const AlgorithmOutput oscOutput = oscillator.process(algorithmType, frequency, param1, param2, param3);
+        float primary = oscOutput.primary;
+        float secondary = oscOutput.secondary;
+        if (!(primary > -2.0f && primary < 2.0f)) {
+            primary = 0.0f;
+        }
+        if (!(secondary > -2.0f && secondary < 2.0f)) {
+            secondary = 0.0f;
+        }
+        const float foldedPrimary = wavefolder.process(primary, wavefoldAmount);
+        const float foldedSecondary = wavefolder.process(secondary, wavefoldAmount);
 
         // Apply envelope
         const float env = envelope.process();
 
         // Apply velocity and master gain
-        const float leftSample = oscOutput.primary * env * velocity * masterGain;
-        const float rightSample = oscOutput.secondary * env * velocity * masterGain;
+        const float leftSample = foldedPrimary * env * velocity * masterGain;
+        const float rightSample = foldedSecondary * env * velocity * masterGain;
 
         // Apply reverb
         const float left = reverbLeft.process(leftSample);
@@ -99,6 +112,10 @@ public:
         param3 = std::clamp(value, 0.0f, 1.0f);
     }
 
+    void setWavefoldAmount(float value) {
+        wavefoldAmount = std::clamp(value, 0.0f, 1.0f);
+    }
+
     void setAttack(float value) {
         envelope.setAttack(value);
     }
@@ -128,6 +145,7 @@ public:
 private:
     float sampleRate;
     OscillatorModule oscillator;
+    WavefolderModule wavefolder;
     EnvelopeModule envelope;
     ReverbModule reverbLeft;
     ReverbModule reverbRight;
@@ -137,6 +155,7 @@ private:
     float param1;
     float param2;
     float param3;
+    float wavefoldAmount;
     float masterGain;
     float velocity;
     bool gate;
