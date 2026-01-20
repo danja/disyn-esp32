@@ -7,6 +7,12 @@ namespace flues::disyn {
 class WavefolderModule {
 public:
     float process(float input, float amount) const {
+        if (!(input > -4.0f && input < 4.0f)) {
+            return 0.0f;
+        }
+        if (!(amount >= 0.0f && amount <= 1.0f)) {
+            amount = 0.0f;
+        }
         if (amount <= 0.0f) {
             return input;
         }
