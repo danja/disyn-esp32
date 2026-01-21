@@ -8,12 +8,19 @@ namespace flues::disyn {
 class DSFDoubleAlgorithm {
 public:
     explicit DSFDoubleAlgorithm(float sampleRate)
-        : sampleRate(sampleRate), phase(0.0f), secondaryPhase(0.0f), secondaryPhaseNeg(0.0f) {}
+        : sampleRate(sampleRate),
+          phase(0.0f),
+          secondaryPhase(0.0f),
+          secondaryPhaseNeg(0.0f),
+          outPrimary(0.0f),
+          outSecondary(0.0f) {}
 
     void reset() {
         phase = 0.0f;
         secondaryPhase = 0.0f;
         secondaryPhaseNeg = 0.0f;
+        outPrimary = 0.0f;
+        outSecondary = 0.0f;
     }
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
@@ -34,9 +41,13 @@ public:
         const float positive = clampAbs(computeDSFComponent(w, tPos, decay), 1.0f);
         const float negative = clampAbs(computeDSFComponent(w, tNeg, decay), 1.0f);
 
-        const float output = 0.5f * (positive * weightPos + negative * weightNeg);
-        const float secondary = 0.5f * (positive - negative);
-        return {clampAudio(output), clampAudio(secondary)};
+        const float rawPrimary = 0.5f * (positive * weightPos + negative * weightNeg);
+        const float rawSecondary = 0.5f * (positive - negative);
+        const float clipAmount = 0.2f;
+        const float slewCoeff = 0.2f;
+        const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
+        const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
+        return normalizeOutput(smoothedPrimary, smoothedSecondary);
     }
 
 private:
@@ -44,6 +55,8 @@ private:
     float phase;
     float secondaryPhase;
     float secondaryPhaseNeg;
+    float outPrimary;
+    float outSecondary;
 };
 
 } // namespace flues::disyn

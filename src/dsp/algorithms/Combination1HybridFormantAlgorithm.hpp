@@ -13,7 +13,9 @@ public:
           modPhase(0.0f),
           formant1Phase(0.0f),
           formant2Phase(0.0f),
-          formant3Phase(0.0f) {}
+          formant3Phase(0.0f),
+          outPrimary(0.0f),
+          outSecondary(0.0f) {}
 
     void reset() {
         phase = 0.0f;
@@ -21,6 +23,8 @@ public:
         formant1Phase = 0.0f;
         formant2Phase = 0.0f;
         formant3Phase = 0.0f;
+        outPrimary = 0.0f;
+        outSecondary = 0.0f;
     }
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
@@ -43,9 +47,13 @@ public:
         const float formant2 = std::sin(TWO_PI * formant2Phase) * 0.5f;
         const float formant3 = std::sin(TWO_PI * formant3Phase) * 0.5f;
 
-        const float output = (base + formant1 + formant2 + formant3) * 0.25f;
-        const float secondary = base * 0.5f;
-        return {clampAudio(output), clampAudio(secondary)};
+        const float rawPrimary = (base + formant1 + formant2 + formant3) * 0.25f;
+        const float rawSecondary = base * 0.5f;
+        const float clipAmount = 0.4f;
+        const float slewCoeff = 0.08f;
+        const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
+        const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
+        return normalizeOutput(smoothedPrimary, smoothedSecondary);
     }
 
 private:
@@ -55,6 +63,8 @@ private:
     float formant1Phase;
     float formant2Phase;
     float formant3Phase;
+    float outPrimary;
+    float outSecondary;
 };
 
 } // namespace flues::disyn

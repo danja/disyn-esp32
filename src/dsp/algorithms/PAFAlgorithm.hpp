@@ -8,12 +8,19 @@ namespace flues::disyn {
 class PAFAlgorithm {
 public:
     explicit PAFAlgorithm(float sampleRate)
-        : sampleRate(sampleRate), phase(0.0f), secondaryPhase(0.0f), modPhase(0.0f) {}
+        : sampleRate(sampleRate),
+          phase(0.0f),
+          secondaryPhase(0.0f),
+          modPhase(0.0f),
+          outPrimary(0.0f),
+          outSecondary(0.0f) {}
 
     void reset() {
         phase = 0.0f;
         secondaryPhase = 0.0f;
         modPhase = 0.0f;
+        outPrimary = 0.0f;
+        outSecondary = 0.0f;
     }
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
@@ -29,9 +36,13 @@ public:
         const float decay = safeExp(-bandwidth / sampleRate);
         modPhase = decay * modPhase + (1.0f - decay) * mod;
 
-        const float output = carrier * ((1.0f - depth) + depth * modPhase) * 0.5f;
-        const float secondary = carrier * (0.5f + 0.5f * modPhase) * 0.5f;
-        return {clampAudio(output), clampAudio(secondary)};
+        const float rawPrimary = carrier * ((1.0f - depth) + depth * modPhase) * 0.5f;
+        const float rawSecondary = carrier * (0.5f + 0.5f * modPhase) * 0.5f;
+        const float clipAmount = 0.0f;
+        const float slewCoeff = 0.2f;
+        const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
+        const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
+        return normalizeOutput(smoothedPrimary, smoothedSecondary);
     }
 
 private:
@@ -39,6 +50,8 @@ private:
     float phase;
     float secondaryPhase;
     float modPhase;
+    float outPrimary;
+    float outSecondary;
 };
 
 } // namespace flues::disyn

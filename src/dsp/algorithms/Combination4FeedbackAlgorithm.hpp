@@ -8,12 +8,19 @@ namespace flues::disyn {
 class Combination4FeedbackAlgorithm {
 public:
     explicit Combination4FeedbackAlgorithm(float sampleRate)
-        : sampleRate(sampleRate), phase(0.0f), modPhase(0.0f), feedbackSample(0.0f) {}
+        : sampleRate(sampleRate),
+          phase(0.0f),
+          modPhase(0.0f),
+          feedbackSample(0.0f),
+          outPrimary(0.0f),
+          outSecondary(0.0f) {}
 
     void reset() {
         phase = 0.0f;
         modPhase = 0.0f;
         feedbackSample = 0.0f;
+        outPrimary = 0.0f;
+        outSecondary = 0.0f;
     }
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
@@ -32,9 +39,13 @@ public:
         feedbackSample = output;
 
         const float shaped = std::tanh(output * drive);
-        const float primary = shaped * 0.5f;
-        const float secondary = output * 0.5f;
-        return {clampAudio(primary), clampAudio(secondary)};
+        const float rawPrimary = shaped * 0.5f;
+        const float rawSecondary = output * 0.5f;
+        const float clipAmount = 1.0f;
+        const float slewCoeff = 0.05f;
+        const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
+        const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
+        return normalizeOutput(smoothedPrimary, smoothedSecondary);
     }
 
 private:
@@ -42,6 +53,8 @@ private:
     float phase;
     float modPhase;
     float feedbackSample;
+    float outPrimary;
+    float outSecondary;
 };
 
 } // namespace flues::disyn

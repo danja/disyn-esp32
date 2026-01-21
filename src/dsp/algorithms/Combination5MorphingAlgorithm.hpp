@@ -12,13 +12,17 @@ public:
           phase(0.0f),
           modPhase(0.0f),
           secondaryPhase(0.0f),
-          formant1Phase(0.0f) {}
+          formant1Phase(0.0f),
+          outPrimary(0.0f),
+          outSecondary(0.0f) {}
 
     void reset() {
         phase = 0.0f;
         modPhase = 0.0f;
         secondaryPhase = 0.0f;
         formant1Phase = 0.0f;
+        outPrimary = 0.0f;
+        outSecondary = 0.0f;
     }
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
@@ -64,8 +68,13 @@ public:
             secondary = paf;
         }
 
-        const float scaled = output * 0.6f;
-        return {clampAudio(scaled), clampAudio(secondary * 0.6f)};
+        const float rawPrimary = output * 0.6f;
+        const float rawSecondary = secondary * 0.6f;
+        const float clipAmount = 0.7f;
+        const float slewCoeff = 0.03f;
+        const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
+        const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
+        return normalizeOutput(smoothedPrimary, smoothedSecondary);
     }
 
 private:
@@ -74,6 +83,8 @@ private:
     float modPhase;
     float secondaryPhase;
     float formant1Phase;
+    float outPrimary;
+    float outSecondary;
 };
 
 } // namespace flues::disyn

@@ -16,7 +16,9 @@ public:
           parallel5Phase(0.0f),
           formant1Phase(0.0f),
           formant2Phase(0.0f),
-          formant3Phase(0.0f) {}
+          formant3Phase(0.0f),
+          outPrimary(0.0f),
+          outSecondary(0.0f) {}
 
     void reset() {
         parallel1Phase = 0.0f;
@@ -27,6 +29,8 @@ public:
         formant1Phase = 0.0f;
         formant2Phase = 0.0f;
         formant3Phase = 0.0f;
+        outPrimary = 0.0f;
+        outSecondary = 0.0f;
     }
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
@@ -56,9 +60,13 @@ public:
 
         const float modfmMix = (modfm1 + modfm2 + modfm3) / 3.0f;
         const float pafMix = (paf1 + paf2) / 2.0f;
-        const float output = (modfmMix * (1.0f - mixBalance) + pafMix * mixBalance) * 0.5f;
-        const float secondary = (pafMix - modfmMix) * 0.5f;
-        return {clampAudio(output), clampAudio(secondary)};
+        const float rawPrimary = (modfmMix * (1.0f - mixBalance) + pafMix * mixBalance) * 0.5f;
+        const float rawSecondary = (pafMix - modfmMix) * 0.5f;
+        const float clipAmount = 0.7f;
+        const float slewCoeff = 0.03f;
+        const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
+        const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
+        return normalizeOutput(smoothedPrimary, smoothedSecondary);
     }
 
 private:
@@ -71,6 +79,8 @@ private:
     float formant1Phase;
     float formant2Phase;
     float formant3Phase;
+    float outPrimary;
+    float outSecondary;
 };
 
 } // namespace flues::disyn

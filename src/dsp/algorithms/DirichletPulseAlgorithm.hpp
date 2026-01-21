@@ -8,10 +8,12 @@ namespace flues::disyn {
 class DirichletPulseAlgorithm {
 public:
     explicit DirichletPulseAlgorithm(float sampleRate)
-        : sampleRate(sampleRate), phase(0.0f) {}
+        : sampleRate(sampleRate), phase(0.0f), outPrimary(0.0f), outSecondary(0.0f) {}
 
     void reset() {
         phase = 0.0f;
+        outPrimary = 0.0f;
+        outSecondary = 0.0f;
     }
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
@@ -37,14 +39,20 @@ public:
         const float base = (value / static_cast<float>(harmonics)) * tiltFactor;
         const float limitedBase = clampAbs(base, 1.5f);
         const float shaped = std::tanh(limitedBase * (1.0f + shape * 4.0f));
-        const float output = limitedBase * (1.0f - shape) + shaped * shape;
-        const float secondary = limitedBase;
-        return {clampAudio(output), clampAudio(secondary)};
+        const float rawPrimary = limitedBase * (1.0f - shape) + shaped * shape;
+        const float rawSecondary = limitedBase;
+        const float clipAmount = 0.4f;
+        const float slewCoeff = 0.08f;
+        const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
+        const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
+        return normalizeOutput(smoothedPrimary, smoothedSecondary);
     }
 
 private:
     float sampleRate;
     float phase;
+    float outPrimary;
+    float outSecondary;
 };
 
 } // namespace flues::disyn

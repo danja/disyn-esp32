@@ -8,11 +8,13 @@ namespace flues::disyn {
 class DSFSingleAlgorithm {
 public:
     explicit DSFSingleAlgorithm(float sampleRate)
-        : sampleRate(sampleRate), phase(0.0f), secondaryPhase(0.0f) {}
+        : sampleRate(sampleRate), phase(0.0f), secondaryPhase(0.0f), outPrimary(0.0f), outSecondary(0.0f) {}
 
     void reset() {
         phase = 0.0f;
         secondaryPhase = 0.0f;
+        outPrimary = 0.0f;
+        outSecondary = 0.0f;
     }
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
@@ -28,15 +30,21 @@ public:
 
         const float dsf = clampAbs(computeDSFComponent(w, t, decay), 1.0f) * 0.5f;
         const float sine = std::sin(w) * 0.5f;
-        const float output = dsf * (1.0f - mix) + sine * mix;
-        const float secondary = dsf;
-        return {clampAudio(output), clampAudio(secondary)};
+        const float rawPrimary = dsf * (1.0f - mix) + sine * mix;
+        const float rawSecondary = dsf;
+        const float clipAmount = 1.0f;
+        const float slewCoeff = 0.05f;
+        const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
+        const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
+        return normalizeOutput(smoothedPrimary, smoothedSecondary);
     }
 
 private:
     float sampleRate;
     float phase;
     float secondaryPhase;
+    float outPrimary;
+    float outSecondary;
 };
 
 } // namespace flues::disyn

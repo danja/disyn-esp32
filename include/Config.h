@@ -15,6 +15,6 @@ constexpr float kReverbLevelCvAmount = 0.0f;  //
 constexpr float kReverbLevelPotAmount = 0.0f; //
 constexpr float kMasterCvAmount = 0.0f;
 constexpr float kMasterPotAmount = 0.0f;
-constexpr float kSampleGuardLimit = 2.0f; // was 8
+constexpr float kSampleGuardLimit = 8.0f; // was 8
 constexpr float kGlobalPreGain = 0.7f;    // was 0.7
 constexpr float kPreClipTanhDrive = 0.0f;

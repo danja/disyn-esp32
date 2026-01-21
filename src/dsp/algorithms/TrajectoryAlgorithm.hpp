@@ -21,7 +21,9 @@ public:
           speed(computeSpeed(440.0f)),
           position({0.0f, 0.0f}),
           velocity({speed, 0.0f}),
-          rngState(0x12345678u) {
+          rngState(0x12345678u),
+          outPrimary(0.0f),
+          outSecondary(0.0f) {
         rebuildPolygon();
         reset();
     }
@@ -29,6 +31,8 @@ public:
     void reset() {
         resetPosition();
         updateVelocity();
+        outPrimary = 0.0f;
+        outSecondary = 0.0f;
     }
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
@@ -68,7 +72,11 @@ public:
         position = current;
         velocity = currentVelocity;
 
-        return {clampAudio(position.x), clampAudio(position.y)};
+        const float clipAmount = 1.0f;
+        const float slewCoeff = 0.05f;
+        const float smoothedPrimary = shapeAndSlew(position.x, outPrimary, slewCoeff, clipAmount);
+        const float smoothedSecondary = shapeAndSlew(position.y, outSecondary, slewCoeff, clipAmount);
+        return normalizeOutput(smoothedPrimary, smoothedSecondary);
     }
 
 private:
@@ -295,6 +303,8 @@ private:
     Vec2 position;
     Vec2 velocity;
     uint32_t rngState;
+    float outPrimary;
+    float outSecondary;
 };
 
 } // namespace flues::disyn

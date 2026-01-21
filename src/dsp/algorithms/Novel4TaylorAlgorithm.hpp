@@ -8,10 +8,12 @@ namespace flues::disyn {
 class Novel4TaylorAlgorithm {
 public:
     explicit Novel4TaylorAlgorithm(float sampleRate)
-        : sampleRate(sampleRate), phase(0.0f) {}
+        : sampleRate(sampleRate), phase(0.0f), outPrimary(0.0f), outSecondary(0.0f) {}
 
     void reset() {
         phase = 0.0f;
+        outPrimary = 0.0f;
+        outSecondary = 0.0f;
     }
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
@@ -28,12 +30,18 @@ public:
         const float output = fundamental * (1.0f - blend) + secondHarmonic * blend;
         const float clamped = std::clamp(output, -1.0f, 1.0f);
         const float secondary = std::clamp(secondHarmonic, -1.0f, 1.0f);
-        return {clampAudio(clamped), clampAudio(secondary)};
+        const float clipAmount = 1.0f;
+        const float slewCoeff = 0.05f;
+        const float smoothedPrimary = shapeAndSlew(clamped, outPrimary, slewCoeff, clipAmount);
+        const float smoothedSecondary = shapeAndSlew(secondary, outSecondary, slewCoeff, clipAmount);
+        return normalizeOutput(smoothedPrimary, smoothedSecondary);
     }
 
 private:
     float sampleRate;
     float phase;
+    float outPrimary;
+    float outSecondary;
 };
 
 } // namespace flues::disyn

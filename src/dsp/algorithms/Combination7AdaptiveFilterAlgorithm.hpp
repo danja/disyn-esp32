@@ -8,12 +8,19 @@ namespace flues::disyn {
 class Combination7AdaptiveFilterAlgorithm {
 public:
     explicit Combination7AdaptiveFilterAlgorithm(float sampleRate)
-        : sampleRate(sampleRate), phase(0.0f), modPhase(0.0f), secondaryPhase(0.0f) {}
+        : sampleRate(sampleRate),
+          phase(0.0f),
+          modPhase(0.0f),
+          secondaryPhase(0.0f),
+          outPrimary(0.0f),
+          outSecondary(0.0f) {}
 
     void reset() {
         phase = 0.0f;
         modPhase = 0.0f;
         secondaryPhase = 0.0f;
+        outPrimary = 0.0f;
+        outSecondary = 0.0f;
     }
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
@@ -34,9 +41,13 @@ public:
         const float mod = std::cos(TWO_PI * secondaryPhase);
         const float modfm = std::cos(TWO_PI * modPhase) * safeExp(modfmIndex * (mod - 1.0f));
 
-        const float output = (dsf * (1.0f - mix) + modfm * mix) * 0.3f;
-        const float secondary = modfm * 0.3f;
-        return {clampAudio(output), clampAudio(secondary)};
+        const float rawPrimary = (dsf * (1.0f - mix) + modfm * mix) * 0.3f;
+        const float rawSecondary = modfm * 0.3f;
+        const float clipAmount = 0.7f;
+        const float slewCoeff = 0.03f;
+        const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
+        const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
+        return normalizeOutput(smoothedPrimary, smoothedSecondary);
     }
 
 private:
@@ -44,6 +55,8 @@ private:
     float phase;
     float modPhase;
     float secondaryPhase;
+    float outPrimary;
+    float outSecondary;
 };
 
 } // namespace flues::disyn
