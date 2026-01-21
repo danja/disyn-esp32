@@ -22,28 +22,26 @@ public:
     }
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
-        const float phiRatio = 1.618034f;
-        const float pafShift = expoMap(param2, 5.0f, 50.0f);
-        const float dsfDecay = 0.5f + param1 * 0.4f;
+        (void)param1;
+        const float pafShift = expoMap(param2, 5.0f, 25.0f);
         const float mix = std::clamp(param3, 0.0f, 1.0f);
 
         phase = stepPhase(phase, pitch, sampleRate);
-        const float theta = TWO_PI * phiRatio;
-        const float denom = 1.0f - 2.0f * dsfDecay * std::cos(theta) + dsfDecay * dsfDecay;
-        const float dsf = clampAbs((std::sin(TWO_PI * phase) - dsfDecay * std::sin(TWO_PI * phase - theta))
-            / (denom + EPSILON), 1.0f);
+        const float dsf = std::sin(TWO_PI * phase) * 0.5f;
 
         const float formantFreq = pitch * 2.0f + pafShift;
         formant1Phase = stepPhase(formant1Phase, formantFreq, sampleRate);
         const float paf = std::sin(TWO_PI * formant1Phase) * 0.5f;
 
-        const float rawPrimary = dsf * (1.0f - mix) + paf * mix;
-        const float rawSecondary = dsf;
-        const float clipAmount = 1.0f;
-        const float slewCoeff = 0.05f;
+        // Prev tune: limitedMix 0.4, rawSecondary *0.6, clipAmount 0.8, slewCoeff 0.05, limit 0.5.
+        const float limitedMix = mix * 0.3f;
+        const float rawPrimary = dsf * (1.0f - limitedMix) + paf * limitedMix;
+        const float rawSecondary = dsf * 0.5f;
+        const float clipAmount = 0.9f;
+        const float slewCoeff = 0.04f;
         const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
         const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
-        return normalizeOutput(smoothedPrimary, smoothedSecondary);
+        return normalizeOutputLimit(smoothedPrimary, smoothedSecondary, 0.4f);
     }
 
 private:

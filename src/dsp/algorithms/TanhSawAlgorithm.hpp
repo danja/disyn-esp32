@@ -22,7 +22,8 @@ public:
     }
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
-        const float drive = expoMap(param1, 0.05f, 4.5f);
+        // Prev tune: drive max 4.5, raw *0.9, clipAmount 0.4, slewCoeff 0.1, limit 0.7.
+        const float drive = expoMap(param1, 0.05f, 2.5f);
         const float blend = std::clamp(param2, 0.0f, 1.0f);
         const float edge = 0.5f + std::clamp(param3, 0.0f, 1.0f) * 1.5f;
 
@@ -35,13 +36,14 @@ public:
         const float saw = square + cosine * (1.0f - square * square) * edge;
 
         const float raw = square * (1.0f - blend) + saw * blend;
-        const float rawPrimary = std::tanh(raw);
-        const float rawSecondary = square;
-        const float clipAmount = 0.0f;
-        const float slewCoeff = 0.2f;
+        // Prev tune: raw *1.2, clipAmount 0.3, slewCoeff 0.12, limit 0.8.
+        const float rawPrimary = std::tanh(raw) * 0.7f;
+        const float rawSecondary = square * 0.7f;
+        const float clipAmount = 0.5f;
+        const float slewCoeff = 0.08f;
         const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
         const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
-        return normalizeOutput(smoothedPrimary, smoothedSecondary);
+        return normalizeOutputLimit(smoothedPrimary, smoothedSecondary, 0.6f);
     }
 
 private:

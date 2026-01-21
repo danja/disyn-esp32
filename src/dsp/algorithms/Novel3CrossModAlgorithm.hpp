@@ -26,33 +26,23 @@ public:
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
         const float mod1Depth = param1;
         const float mod2Depth = param2;
+        (void)mod2Depth;
         const float mix = std::clamp(param3, 0.0f, 1.0f);
 
-        const float baseDsfDecay = 0.7f;
-        const float baseDsfRatio = 1.5f;
-        const float baseModfmIndex = 0.25f;
-
-        const float dsfRatio = baseDsfRatio + mod2Depth * baseModfmIndex * 0.5f;
-        const float modfmIndex = baseModfmIndex + mod1Depth * baseDsfDecay * 1.0f;
-
+        // Prev tune: sine crossfade, raw *0.8, clipAmount 0.6, slewCoeff 0.06, limit 0.6.
         phase = stepPhase(phase, pitch, sampleRate);
-        const float theta = TWO_PI * dsfRatio;
-        const float denom = 1.0f - 2.0f * baseDsfDecay * std::cos(theta) + baseDsfDecay * baseDsfDecay;
-        const float dsf = clampAbs((std::sin(TWO_PI * phase) - baseDsfDecay * std::sin(TWO_PI * phase - theta))
-            / (denom + EPSILON), 1.0f);
+        modPhase = stepPhase(modPhase, pitch * (1.0f + mod1Depth), sampleRate);
 
-        modPhase = stepPhase(modPhase, pitch, sampleRate);
-        secondaryPhase = stepPhase(secondaryPhase, pitch, sampleRate);
-        const float mod = std::cos(TWO_PI * secondaryPhase);
-        const float modfm = std::cos(TWO_PI * modPhase) * safeExp(modfmIndex * (mod - 1.0f));
+        const float carrier = std::sin(TWO_PI * phase);
+        const float mod = std::sin(TWO_PI * modPhase);
 
-        const float rawPrimary = (dsf * (1.0f - mix) + modfm * mix) * 0.7f;
-        const float rawSecondary = (dsf - modfm) * 0.7f;
-        const float clipAmount = 0.7f;
-        const float slewCoeff = 0.03f;
+        const float rawPrimary = (carrier * (1.0f - mix) + mod * mix) * 1.4f;
+        const float rawSecondary = carrier * 1.4f;
+        const float clipAmount = 0.3f;
+        const float slewCoeff = 0.07f;
         const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
         const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
-        return normalizeOutput(smoothedPrimary, smoothedSecondary);
+        return normalizeOutputLimit(smoothedPrimary, smoothedSecondary, 1.2f);
     }
 
 private:

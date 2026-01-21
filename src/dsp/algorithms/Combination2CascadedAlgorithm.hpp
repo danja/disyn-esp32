@@ -24,27 +24,22 @@ public:
     }
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
-        const float dsfDecay = 0.5f + param1 * 0.45f;
-        const float asymRatio = param2;
-        const float tanhDrive = param3 * 5.0f;
+        (void)param2;
+        // Prev tune: simple tanh blend, raw *0.8, clipAmount 0.5, slewCoeff 0.06, limit 0.8.
+        const float drive = 0.8f + std::clamp(param1, 0.0f, 1.0f) * 2.0f;
+        const float mix = std::clamp(param3, 0.0f, 1.0f);
 
         phase = stepPhase(phase, pitch, sampleRate);
-        const float theta = TWO_PI * 1.5f;
-        const float denom = 1.0f - 2.0f * dsfDecay * std::cos(theta) + dsfDecay * dsfDecay;
-        const float stage1 = clampAbs((std::sin(TWO_PI * phase) - dsfDecay * std::sin(TWO_PI * phase - theta))
-            / (denom + EPSILON), 1.0f);
+        const float carrier = std::sin(TWO_PI * phase);
+        const float shaped = std::tanh(carrier * drive);
 
-        const float stage2 = processAsymmetricFM(std::abs(stage1), asymRatio, pitch, sampleRate,
-                                                 cascade1Phase, cascade2Phase);
-
-        const float stage3 = std::tanh(stage2 * tanhDrive);
-        const float rawPrimary = stage3 * 0.6f;
-        const float rawSecondary = stage2 * 0.6f;
-        const float clipAmount = 0.7f;
-        const float slewCoeff = 0.03f;
+        const float rawPrimary = (carrier * (1.0f - mix) + shaped * mix) * 0.9f;
+        const float rawSecondary = shaped * 0.9f;
+        const float clipAmount = 0.4f;
+        const float slewCoeff = 0.06f;
         const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
         const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
-        return normalizeOutput(smoothedPrimary, smoothedSecondary);
+        return normalizeOutputLimit(smoothedPrimary, smoothedSecondary, 0.9f);
     }
 
 private:

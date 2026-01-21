@@ -22,25 +22,28 @@ public:
     }
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
-        const float index = expoMap(param1, 0.01f, 8.0f);
-        const float ratio = expoMap(param2, 0.25f, 6.0f);
-        const float feedback = std::clamp(param3, 0.0f, 1.0f) * 0.8f;
+        // Prev tune: index max 1.5, ratio max 2.0, raw *0.6, limit 0.6.
+        const float index = expoMap(param1, 0.01f, 0.8f);
+        const float ratio = expoMap(param2, 0.5f, 1.5f);
+        const float feedback = std::clamp(param3, 0.0f, 1.0f) * 0.4f;
+        (void)feedback;
 
         phase = stepPhase(phase, pitch, sampleRate);
         modPhase = stepPhase(modPhase, pitch * ratio, sampleRate);
 
         const float carrier = std::cos(phase * TWO_PI);
         const float modPhaseRad = modPhase * TWO_PI;
-        const float modulator = std::cos(modPhaseRad + feedback * std::sin(modPhaseRad));
-        const float envelope = safeExp(-index);
+        const float modulator = std::sin(modPhaseRad);
+        const float fm = std::cos(phase * TWO_PI + modulator * index * 0.5f);
 
-        const float rawPrimary = carrier * safeExp(index * (modulator - 1.0f)) * envelope * 0.6f;
-        const float rawSecondary = carrier * modulator * envelope * 0.6f;
-        const float clipAmount = 0.1f;
-        const float slewCoeff = 0.2f;
+        // Prev tune: raw *0.6, clipAmount 0.5, slewCoeff 0.06, limit 0.6.
+        const float rawPrimary = fm * 0.5f;
+        const float rawSecondary = carrier * 0.5f;
+        const float clipAmount = 0.6f;
+        const float slewCoeff = 0.05f;
         const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
         const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
-        return normalizeOutput(smoothedPrimary, smoothedSecondary);
+        return normalizeOutputLimit(smoothedPrimary, smoothedSecondary, 0.5f);
     }
 
 private:

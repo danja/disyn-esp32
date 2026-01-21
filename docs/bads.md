@@ -3,22 +3,22 @@ b = bad, distorted instability
 i = intermittent
 s = silent
 
-Dirichlet i
-DSF Single g
-DSF Double s
-Tanh Square s
-Tanh Saw s
-PAF s
-Mod FM s
-Formant i
-Cascade b
-Banks b
+Dirichlet g
+DSF Single b
+DSF Double b
+Tanh Square b
+Tanh Saw b
+PAF i
+Mod FM b
+Formant g
+Cascade s
+Banks s
 Feedback g
-Morphing b
-Inharmonic g
-AFilter b
-Multi s
-Asym b
-Cross b
+Morphing i
+Inharmonic b
+AFilter s
+Multi i
+Asym s
+Cross s
 Taylor g
 Trajectory g

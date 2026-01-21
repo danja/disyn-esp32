@@ -63,6 +63,12 @@ namespace flues::disyn
         return slewLimit(shaped, state, slewCoeff);
     }
 
+    inline float stableModGain(float index, float modulator)
+    {
+        const float depth = std::tanh(index * 0.5f);
+        return 1.0f + depth * modulator;
+    }
+
     inline AlgorithmOutput normalizeOutput(float primary, float secondary)
     {
         const float maxAbs = std::max(std::abs(primary), std::abs(secondary));
@@ -73,6 +79,30 @@ namespace flues::disyn
             secondary *= scale;
         }
         return {primary, secondary};
+    }
+
+    inline AlgorithmOutput normalizeOutputLimit(float primary, float secondary, float limit)
+    {
+        const float maxAbs = std::max(std::abs(primary), std::abs(secondary));
+        if (maxAbs > limit && maxAbs > 0.0f)
+        {
+            const float scale = limit / maxAbs;
+            primary *= scale;
+            secondary *= scale;
+        }
+        return {primary, secondary};
+    }
+
+    inline float quantizeBipolar(float value, int steps)
+    {
+        if (steps <= 1)
+        {
+            return value;
+        }
+        const float scaled = (value + 1.0f) * 0.5f;
+        const float quantized = std::round(scaled * static_cast<float>(steps - 1))
+            / static_cast<float>(steps - 1);
+        return quantized * 2.0f - 1.0f;
     }
 
     inline float safeExp(float x)
@@ -104,22 +134,23 @@ namespace flues::disyn
     inline float processAsymmetricFM(float param1, float param2, float frequency,
                                      float sampleRate, float &carrierPhaseRef, float &modPhaseRef)
     {
-        const float k = expoMap(param1, 0.01f, 10.0f);
-        const float r = expoMap(param2, 0.5f, 2.0f);
+        const float k = expoMap(param1, 0.01f, 3.0f);
+        const float r = expoMap(param2, 0.8f, 1.2f);
         const float modFreq = frequency;
 
         carrierPhaseRef = stepPhase(carrierPhaseRef, frequency, sampleRate);
         modPhaseRef = stepPhase(modPhaseRef, modFreq, sampleRate);
 
         const float modulator = std::sin(TWO_PI * modPhaseRef);
-        float asymmetry = safeExp(k * (r - 1.0f / r) * std::cos(TWO_PI * modPhaseRef) / 2.0f);
+        const float drive = k * (r - 1.0f / r) * std::cos(TWO_PI * modPhaseRef) * 0.5f;
+        float asymmetry = 1.0f + 0.5f * std::tanh(drive);
         if (asymmetry > ASYM_MAX_GAIN)
         {
             asymmetry = ASYM_MAX_GAIN;
         }
         const float carrier = std::cos(TWO_PI * carrierPhaseRef + k * modulator);
 
-        return carrier * asymmetry * 0.5f;
+        return carrier * asymmetry * 0.4f;
     }
 
     inline float wrapAngle(float x)

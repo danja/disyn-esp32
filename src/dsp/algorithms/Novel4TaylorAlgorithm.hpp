@@ -30,11 +30,12 @@ public:
         const float output = fundamental * (1.0f - blend) + secondHarmonic * blend;
         const float clamped = std::clamp(output, -1.0f, 1.0f);
         const float secondary = std::clamp(secondHarmonic, -1.0f, 1.0f);
-        const float clipAmount = 1.0f;
+        // Prev tune: clipAmount 0.8, slewCoeff 0.06, limit 0.8.
+        const float clipAmount = 0.9f;
         const float slewCoeff = 0.05f;
         const float smoothedPrimary = shapeAndSlew(clamped, outPrimary, slewCoeff, clipAmount);
         const float smoothedSecondary = shapeAndSlew(secondary, outSecondary, slewCoeff, clipAmount);
-        return normalizeOutput(smoothedPrimary, smoothedSecondary);
+        return normalizeOutputLimit(smoothedPrimary, smoothedSecondary, 0.6f);
     }
 
 private:

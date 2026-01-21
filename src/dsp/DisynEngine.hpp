@@ -79,13 +79,16 @@ namespace flues::disyn
             const float preFoldSecondary = secondary * foldGain;
             const float foldedPrimary = wavefolder.process(preFoldPrimary, wavefoldAmount);
             const float foldedSecondary = wavefolder.process(preFoldSecondary, wavefoldAmount);
+            // Prev tune: postGain 3.0 with tanh. Reverting to avoid global distortion.
+            const float postPrimary = foldedPrimary;
+            const float postSecondary = foldedSecondary;
 
             // Apply envelope
             const float env = envelope.process();
 
             // Apply velocity and master gain
-            const float leftSample = foldedPrimary * env * velocity * masterGain * outputGain;
-            const float rightSample = foldedSecondary * env * velocity * masterGain * outputGain;
+            const float leftSample = postPrimary * env * velocity * masterGain * outputGain;
+            const float rightSample = postSecondary * env * velocity * masterGain * outputGain;
 
             // Apply reverb
             const float left = reverbLeft.process(leftSample);
@@ -104,7 +107,7 @@ namespace flues::disyn
         // Parameter setters
         void setAlgorithm(int type)
         {
-            if (type >= 0 && type <= 18)
+            if (type >= 0 && type <= 25)
             {
                 algorithmType = static_cast<AlgorithmType>(type);
             }
@@ -205,6 +208,20 @@ namespace flues::disyn
                 return 1.0000f;
             case AlgorithmType::TRAJECTORY:
                 return 1.0000f;
+            case AlgorithmType::SINE:
+                return 1.0000f;
+            case AlgorithmType::RAMP:
+                return 1.0000f;
+            case AlgorithmType::TRIANGLE:
+                return 1.0000f;
+            case AlgorithmType::PULSE:
+                return 1.0000f;
+            case AlgorithmType::NOISE:
+                return 1.0000f;
+            case AlgorithmType::LOGISTIC:
+                return 1.0000f;
+            case AlgorithmType::BUTTERFLY:
+                return 1.0000f;
             default:
                 return 1.0f;
             }
@@ -252,6 +269,20 @@ namespace flues::disyn
                 return 0.4501f;
             case AlgorithmType::TRAJECTORY:
                 return 0.6886f;
+            case AlgorithmType::SINE:
+                return 0.8f;
+            case AlgorithmType::RAMP:
+                return 0.8f;
+            case AlgorithmType::TRIANGLE:
+                return 0.8f;
+            case AlgorithmType::PULSE:
+                return 0.8f;
+            case AlgorithmType::NOISE:
+                return 0.6f;
+            case AlgorithmType::LOGISTIC:
+                return 0.6f;
+            case AlgorithmType::BUTTERFLY:
+                return 0.6f;
             default:
                 return 1.0f;
             }

@@ -35,38 +35,32 @@ public:
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
         (void)param2;
-        const float modfmIndex = expoMap(param1, 0.01f, 8.0f);
-        const float mixBalance = param3;
+        (void)param1;
+        const float mixBalance = std::clamp(param3, 0.0f, 1.0f);
 
+        // Prev tune: simplified sines + formants, raw *0.3, clipAmount 0.7, slewCoeff 0.04, limit 0.4.
         parallel1Phase = stepPhase(parallel1Phase, pitch, sampleRate);
-        parallel2Phase = stepPhase(parallel2Phase, pitch * 1.0f, sampleRate);
-        const float mod1 = std::cos(TWO_PI * parallel2Phase);
-        const float modfm1 = std::cos(TWO_PI * parallel1Phase) * safeExp(modfmIndex * (mod1 - 1.0f));
+        parallel3Phase = stepPhase(parallel3Phase, pitch * 1.5f, sampleRate);
+        parallel5Phase = stepPhase(parallel5Phase, pitch * 2.0f, sampleRate);
 
-        parallel3Phase = stepPhase(parallel3Phase, pitch, sampleRate);
-        parallel4Phase = stepPhase(parallel4Phase, pitch * 1.5f, sampleRate);
-        const float mod2 = std::cos(TWO_PI * parallel4Phase);
-        const float modfm2 = std::cos(TWO_PI * parallel3Phase) * safeExp(modfmIndex * (mod2 - 1.0f));
-
-        parallel5Phase = stepPhase(parallel5Phase, pitch, sampleRate);
-        formant1Phase = stepPhase(formant1Phase, pitch * 1.333f, sampleRate);
-        const float mod3 = std::cos(TWO_PI * formant1Phase);
-        const float modfm3 = std::cos(TWO_PI * parallel5Phase) * safeExp(modfmIndex * (mod3 - 1.0f));
+        const float voice1 = std::sin(TWO_PI * parallel1Phase) * 0.5f;
+        const float voice2 = std::sin(TWO_PI * parallel3Phase) * 0.5f;
+        const float voice3 = std::sin(TWO_PI * parallel5Phase) * 0.5f;
 
         formant2Phase = stepPhase(formant2Phase, 800.0f, sampleRate);
         formant3Phase = stepPhase(formant3Phase, 2400.0f, sampleRate);
-        const float paf1 = std::sin(TWO_PI * formant2Phase) * 0.5f;
-        const float paf2 = std::sin(TWO_PI * formant3Phase) * 0.5f;
+        const float paf1 = std::sin(TWO_PI * formant2Phase) * 0.4f;
+        const float paf2 = std::sin(TWO_PI * formant3Phase) * 0.4f;
 
-        const float modfmMix = (modfm1 + modfm2 + modfm3) / 3.0f;
+        const float voiceMix = (voice1 + voice2 + voice3) / 3.0f;
         const float pafMix = (paf1 + paf2) / 2.0f;
-        const float rawPrimary = (modfmMix * (1.0f - mixBalance) + pafMix * mixBalance) * 0.5f;
-        const float rawSecondary = (pafMix - modfmMix) * 0.5f;
-        const float clipAmount = 0.7f;
-        const float slewCoeff = 0.03f;
+        const float rawPrimary = (voiceMix * (1.0f - mixBalance) + pafMix * mixBalance) * 1.0f;
+        const float rawSecondary = voiceMix * 1.0f;
+        const float clipAmount = 0.3f;
+        const float slewCoeff = 0.06f;
         const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
         const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
-        return normalizeOutput(smoothedPrimary, smoothedSecondary);
+        return normalizeOutputLimit(smoothedPrimary, smoothedSecondary, 1.0f);
     }
 
 private:

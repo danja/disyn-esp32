@@ -28,26 +28,23 @@ public:
         const float resonance = param2;
         const float mix = std::clamp(param3, 0.0f, 1.0f);
 
-        const float dsfDecay = 0.5f + resonance * 0.49f;
+        const float dsfDecay = 0.5f + resonance * 0.3f;
         phase = stepPhase(phase, pitch, sampleRate);
         const float theta = TWO_PI * (1.0f + cutoff * 2.0f);
         const float denom = 1.0f - 2.0f * dsfDecay * std::cos(theta) + dsfDecay * dsfDecay;
         const float dsf = clampAbs((std::sin(TWO_PI * phase) - dsfDecay * std::sin(TWO_PI * phase - theta))
             / (denom + EPSILON), 1.0f);
 
-        const float modfmIndex = expoMap(cutoff, 0.01f, 2.0f);
+        // Prev tune: DSF + sine mix, raw *0.8, clipAmount 0.4, slewCoeff 0.06, limit 1.0.
         modPhase = stepPhase(modPhase, pitch, sampleRate);
-        secondaryPhase = stepPhase(secondaryPhase, pitch, sampleRate);
-        const float mod = std::cos(TWO_PI * secondaryPhase);
-        const float modfm = std::cos(TWO_PI * modPhase) * safeExp(modfmIndex * (mod - 1.0f));
-
-        const float rawPrimary = (dsf * (1.0f - mix) + modfm * mix) * 0.3f;
-        const float rawSecondary = modfm * 0.3f;
-        const float clipAmount = 0.7f;
-        const float slewCoeff = 0.03f;
+        const float mod = std::sin(TWO_PI * modPhase) * 0.5f;
+        const float rawPrimary = (dsf * (1.0f - mix) + mod * mix) * 0.8f;
+        const float rawSecondary = dsf * 0.8f;
+        const float clipAmount = 0.4f;
+        const float slewCoeff = 0.06f;
         const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
         const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
-        return normalizeOutput(smoothedPrimary, smoothedSecondary);
+        return normalizeOutputLimit(smoothedPrimary, smoothedSecondary, 0.9f);
     }
 
 private:

@@ -22,9 +22,9 @@ public:
     }
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
-        const float lowR = 0.5f + param1 * 0.5f;
-        const float highR = 1.0f + param2 * 1.0f;
-        const float index = 0.2f + std::clamp(param3, 0.0f, 1.0f) * 0.8f;
+        const float lowR = 0.8f + param1 * 0.2f;
+        const float highR = 1.0f + param2 * 0.2f;
+        const float index = 0.1f + std::clamp(param3, 0.0f, 1.0f) * 0.3f;
 
         float r;
         if (pitch < 500.0f) {
@@ -36,14 +36,17 @@ public:
             r = lowR * (1.0f - alpha) + highR * alpha;
         }
 
-        const float output = processAsymmetricFM(index, r / 2.0f, pitch, sampleRate, phase, modPhase);
+        modPhase = stepPhase(modPhase, pitch * r, sampleRate);
+        phase = stepPhase(phase, pitch, sampleRate);
         const float mod = std::sin(TWO_PI * modPhase);
-        const float secondary = std::cos(TWO_PI * phase + index * mod) * 0.5f;
-        const float clipAmount = 0.7f;
-        const float slewCoeff = 0.03f;
-        const float smoothedPrimary = shapeAndSlew(output, outPrimary, slewCoeff, clipAmount);
-        const float smoothedSecondary = shapeAndSlew(secondary, outSecondary, slewCoeff, clipAmount);
-        return normalizeOutput(smoothedPrimary, smoothedSecondary);
+        const float output = std::cos(TWO_PI * phase + mod * index) * 0.4f;
+        const float secondary = std::cos(TWO_PI * phase) * 0.4f;
+        // Prev tune: output *1.0, clipAmount 0.5, slewCoeff 0.05, limit 0.6.
+        const float clipAmount = 0.3f;
+        const float slewCoeff = 0.06f;
+        const float smoothedPrimary = shapeAndSlew(output * 1.5f, outPrimary, slewCoeff, clipAmount);
+        const float smoothedSecondary = shapeAndSlew(secondary * 1.5f, outSecondary, slewCoeff, clipAmount);
+        return normalizeOutputLimit(smoothedPrimary, smoothedSecondary, 1.2f);
     }
 
 private:

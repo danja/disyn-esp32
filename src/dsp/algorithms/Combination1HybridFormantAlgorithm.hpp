@@ -29,15 +29,12 @@ public:
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
         (void)param2;
-        const float modfmIndex = expoMap(param1, 0.01f, 3.0f);
-        const float formantSpacing = 0.8f + param3 * 0.4f;
+        const float formantSpacing = 0.9f + param3 * 0.2f;
 
         phase = stepPhase(phase, pitch, sampleRate);
         modPhase = stepPhase(modPhase, pitch, sampleRate);
-        const float modulator = std::sin(TWO_PI * modPhase);
         const float carrier = std::sin(TWO_PI * phase);
-        const float envelope = safeExp(-modfmIndex);
-        const float base = carrier * safeExp(-modfmIndex * (std::abs(modulator) - 1.0f)) * envelope * 0.4f;
+        const float base = carrier * 0.4f;
 
         formant1Phase = stepPhase(formant1Phase, 800.0f * formantSpacing, sampleRate);
         formant2Phase = stepPhase(formant2Phase, 1200.0f * formantSpacing, sampleRate);
@@ -47,13 +44,14 @@ public:
         const float formant2 = std::sin(TWO_PI * formant2Phase) * 0.5f;
         const float formant3 = std::sin(TWO_PI * formant3Phase) * 0.5f;
 
-        const float rawPrimary = (base + formant1 + formant2 + formant3) * 0.25f;
-        const float rawSecondary = base * 0.5f;
-        const float clipAmount = 0.4f;
-        const float slewCoeff = 0.08f;
+        // Prev tune: rawPrimary *0.4, rawSecondary *0.6, clipAmount 0.6, slewCoeff 0.05, limit 0.6.
+        const float rawPrimary = (base + formant1 + formant2 + formant3) * 0.6f;
+        const float rawSecondary = base * 0.6f;
+        const float clipAmount = 0.5f;
+        const float slewCoeff = 0.05f;
         const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
         const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
-        return normalizeOutput(smoothedPrimary, smoothedSecondary);
+        return normalizeOutputLimit(smoothedPrimary, smoothedSecondary, 0.8f);
     }
 
 private:

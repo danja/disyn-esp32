@@ -21,9 +21,16 @@
 #include "../algorithms/Novel3CrossModAlgorithm.hpp"
 #include "../algorithms/Novel4TaylorAlgorithm.hpp"
 #include "../algorithms/PAFAlgorithm.hpp"
+#include "../algorithms/PulseAlgorithm.hpp"
+#include "../algorithms/RampAlgorithm.hpp"
+#include "../algorithms/SineAlgorithm.hpp"
+#include "../algorithms/NoiseAlgorithm.hpp"
+#include "../algorithms/LogisticAlgorithm.hpp"
+#include "../algorithms/ButterflyAlgorithm.hpp"
 #include "../algorithms/TanhSawAlgorithm.hpp"
 #include "../algorithms/TanhSquareAlgorithm.hpp"
 #include "../algorithms/TrajectoryAlgorithm.hpp"
+#include "../algorithms/TriangleAlgorithm.hpp"
 
 namespace flues::disyn {
 
@@ -50,7 +57,14 @@ public:
           novel2(sampleRate),
           novel3(sampleRate),
           novel4(sampleRate),
-          trajectory(sampleRate) {}
+          trajectory(sampleRate),
+          sine(sampleRate),
+          ramp(sampleRate),
+          triangle(sampleRate),
+          pulse(sampleRate),
+          noise(sampleRate),
+          logistic(sampleRate),
+          butterfly(sampleRate) {}
 
     void reset() {
         fallbackPhase = 0.0f;
@@ -73,10 +87,21 @@ public:
         novel3.reset();
         novel4.reset();
         trajectory.reset();
+        sine.reset();
+        ramp.reset();
+        triangle.reset();
+        pulse.reset();
+        noise.reset();
+        logistic.reset();
+        butterfly.reset();
     }
 
     // param3 defaults for compatibility with older hosts/presets that only provided two params.
     AlgorithmOutput process(AlgorithmType algorithm, float pitch, float param1, float param2, float param3 = 0.5f) {
+        if (!isAlgorithmActive(algorithm)) {
+            return {0.0f, 0.0f};
+        }
+
         switch (algorithm) {
             case AlgorithmType::DIRICHLET_PULSE:
                 return dirichlet.process(pitch, param1, param2, param3);
@@ -118,6 +143,20 @@ public:
                 return novel4.process(pitch, param1, param2, param3);
             case AlgorithmType::TRAJECTORY:
                 return trajectory.process(pitch, param1, param2, param3);
+            case AlgorithmType::SINE:
+                return sine.process(pitch, param1, param2, param3);
+            case AlgorithmType::RAMP:
+                return ramp.process(pitch, param1, param2, param3);
+            case AlgorithmType::TRIANGLE:
+                return triangle.process(pitch, param1, param2, param3);
+            case AlgorithmType::PULSE:
+                return pulse.process(pitch, param1, param2, param3);
+            case AlgorithmType::NOISE:
+                return noise.process(pitch, param1, param2, param3);
+            case AlgorithmType::LOGISTIC:
+                return logistic.process(pitch, param1, param2, param3);
+            case AlgorithmType::BUTTERFLY:
+                return butterfly.process(pitch, param1, param2, param3);
 
             default:
                 return processSine(pitch);
@@ -125,6 +164,26 @@ public:
     }
 
 private:
+    static bool isAlgorithmActive(AlgorithmType algorithm) {
+        // Active set from latest listening pass; disabled ones should remain silent for now.
+        switch (algorithm) {
+            case AlgorithmType::DIRICHLET_PULSE:
+            case AlgorithmType::COMBINATION_1_HYBRID_FORMANT:
+            case AlgorithmType::NOVEL_4_TAYLOR:
+            case AlgorithmType::TRAJECTORY:
+            case AlgorithmType::SINE:
+            case AlgorithmType::RAMP:
+            case AlgorithmType::TRIANGLE:
+            case AlgorithmType::PULSE:
+            case AlgorithmType::NOISE:
+            case AlgorithmType::LOGISTIC:
+            case AlgorithmType::BUTTERFLY:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     AlgorithmOutput processSine(float pitch) {
         fallbackPhase = stepPhase(fallbackPhase, pitch, sampleRate);
         const float output = std::sin(fallbackPhase * TWO_PI);
@@ -155,6 +214,13 @@ private:
     Novel3CrossModAlgorithm novel3;
     Novel4TaylorAlgorithm novel4;
     TrajectoryAlgorithm trajectory;
+    SineAlgorithm sine;
+    RampAlgorithm ramp;
+    TriangleAlgorithm triangle;
+    PulseAlgorithm pulse;
+    NoiseAlgorithm noise;
+    LogisticAlgorithm logistic;
+    ButterflyAlgorithm butterfly;
 };
 
 } // namespace flues::disyn

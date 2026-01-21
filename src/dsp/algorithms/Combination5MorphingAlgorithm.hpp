@@ -28,7 +28,7 @@ public:
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
         const float morphCurve = 0.5f + std::clamp(param3, 0.0f, 1.0f) * 1.5f;
         const float morphPos = std::pow(std::clamp(param1, 0.0f, 1.0f), morphCurve);
-        const float character = param2;
+        (void)param2;
 
         float output = 0.0f;
 
@@ -38,28 +38,18 @@ public:
             const float alpha = morphPos * 2.0f;
 
             phase = stepPhase(phase, pitch, sampleRate);
-            const float dsfDecay = 0.5f + character * 0.4f;
-            const float theta = TWO_PI * 1.5f;
-            const float denom = 1.0f - 2.0f * dsfDecay * std::cos(theta) + dsfDecay * dsfDecay;
-            const float dsf = clampAbs((std::sin(TWO_PI * phase) - dsfDecay * std::sin(TWO_PI * phase - theta))
-                / (denom + EPSILON), 1.0f);
+            const float sine = std::sin(TWO_PI * phase) * 0.5f;
 
             modPhase = stepPhase(modPhase, pitch, sampleRate);
-            secondaryPhase = stepPhase(secondaryPhase, pitch, sampleRate);
-            const float modfmIndex = expoMap(character, 0.01f, 8.0f);
-            const float mod = std::cos(TWO_PI * secondaryPhase);
-            const float modfm = std::cos(TWO_PI * modPhase) * safeExp(modfmIndex * (mod - 1.0f));
+            const float modfm = std::sin(TWO_PI * modPhase) * 0.5f;
 
-            output = dsf * (1.0f - alpha) + modfm * alpha;
+            output = sine * (1.0f - alpha) + modfm * alpha;
             secondary = modfm;
         } else {
             const float alpha = (morphPos - 0.5f) * 2.0f;
 
             modPhase = stepPhase(modPhase, pitch, sampleRate);
-            secondaryPhase = stepPhase(secondaryPhase, pitch, sampleRate);
-            const float modfmIndex = expoMap(character, 0.01f, 8.0f);
-            const float mod = std::cos(TWO_PI * secondaryPhase);
-            const float modfm = std::cos(TWO_PI * modPhase) * safeExp(modfmIndex * (mod - 1.0f));
+            const float modfm = std::sin(TWO_PI * modPhase) * 0.5f;
 
             formant1Phase = stepPhase(formant1Phase, pitch * 2.0f, sampleRate);
             const float paf = std::sin(TWO_PI * formant1Phase) * 0.5f;
@@ -68,13 +58,14 @@ public:
             secondary = paf;
         }
 
-        const float rawPrimary = output * 0.6f;
-        const float rawSecondary = secondary * 0.6f;
-        const float clipAmount = 0.7f;
-        const float slewCoeff = 0.03f;
+        // Prev tune: raw *0.9, clipAmount 0.3, slewCoeff 0.06, limit 1.0.
+        const float rawPrimary = output * 0.8f;
+        const float rawSecondary = secondary * 0.8f;
+        const float clipAmount = 0.4f;
+        const float slewCoeff = 0.06f;
         const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
         const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
-        return normalizeOutput(smoothedPrimary, smoothedSecondary);
+        return normalizeOutputLimit(smoothedPrimary, smoothedSecondary, 0.9f);
     }
 
 private:

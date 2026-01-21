@@ -24,28 +24,24 @@ public:
     }
 
     AlgorithmOutput process(float pitch, float param1, float param2, float param3) {
-        const float modfmIndex = expoMap(param1, 0.01f, 8.0f);
-        const float feedbackGain = param2 * 0.95f;
-        const float drive = 1.0f + std::clamp(param3, 0.0f, 1.0f) * 4.0f;
-
-        const float modifiedFreq = pitch + feedbackSample * feedbackGain * pitch;
+        (void)param2;
+        // Prev tune: simplified tanh carrier, clipAmount 0.6, slewCoeff 0.05, limit 0.6.
+        const float drive = 0.6f + std::clamp(param1, 0.0f, 1.0f) * 2.0f;
+        const float modifiedFreq = pitch;
 
         phase = stepPhase(phase, modifiedFreq, sampleRate);
         modPhase = stepPhase(modPhase, modifiedFreq, sampleRate);
-        const float modulator = std::cos(TWO_PI * modPhase);
         const float carrier = std::cos(TWO_PI * phase);
-        const float output = carrier * safeExp(modfmIndex * (modulator - 1.0f));
+        feedbackSample = 0.0f;
 
-        feedbackSample = output;
-
-        const float shaped = std::tanh(output * drive);
-        const float rawPrimary = shaped * 0.5f;
-        const float rawSecondary = output * 0.5f;
-        const float clipAmount = 1.0f;
-        const float slewCoeff = 0.05f;
+        const float shaped = std::tanh(carrier * drive);
+        const float rawPrimary = shaped * 0.6f;
+        const float rawSecondary = carrier * 0.4f;
+        const float clipAmount = 0.5f;
+        const float slewCoeff = 0.06f;
         const float smoothedPrimary = shapeAndSlew(rawPrimary, outPrimary, slewCoeff, clipAmount);
         const float smoothedSecondary = shapeAndSlew(rawSecondary, outSecondary, slewCoeff, clipAmount);
-        return normalizeOutput(smoothedPrimary, smoothedSecondary);
+        return normalizeOutputLimit(smoothedPrimary, smoothedSecondary, 0.8f);
     }
 
 private:

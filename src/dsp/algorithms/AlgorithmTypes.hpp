@@ -26,7 +26,16 @@ enum class AlgorithmType : int {
     NOVEL_2_FREQ_ASYMMETRY = 15,           // Frequency-dependent AsymFM
     NOVEL_3_CROSS_MOD = 16,                // Cross-algorithm modulation
     NOVEL_4_TAYLOR = 17,                   // Taylor series approximation
-    TRAJECTORY = 18                        // Polygonal trajectory oscillator
+    TRAJECTORY = 18,                       // Polygonal trajectory oscillator
+
+    // Simple algorithms (19-25)
+    SINE = 19,
+    RAMP = 20,
+    TRIANGLE = 21,
+    PULSE = 22,
+    NOISE = 23,
+    LOGISTIC = 24,
+    BUTTERFLY = 25
 };
 
 } // namespace flues::disyn

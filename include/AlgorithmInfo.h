@@ -43,6 +43,13 @@ constexpr AlgorithmInfo kAlgorithmInfoList[] = {
     {"Cross", {"M1", 0.0f, 1.0f, false}, {"M2", 0.0f, 1.0f, false}},
     {"Taylor", {"T1", 1.0f, 10.0f, true}, {"T2", 1.0f, 10.0f, true}},
     {"Trajectory", {"Sides", 3.0f, 12.0f, true}, {"Ang", 0.0f, 360.0f, false}},
+    {"Sine", {"Quant", 1.0f, 64.0f, true}, {"P2", 0.0f, 1.0f, false}},
+    {"Ramp", {"Quant", 1.0f, 64.0f, true}, {"P2", 0.0f, 1.0f, false}},
+    {"Triangle", {"Quant", 1.0f, 64.0f, true}, {"P2", 0.0f, 1.0f, false}},
+    {"Pulse", {"Width", 0.05f, 0.95f, false}, {"P2", 0.0f, 1.0f, false}},
+    {"Noise", {"Smooth", 0.0f, 1.0f, false}, {"P2", 0.0f, 1.0f, false}},
+    {"Logistic", {"Smooth", 0.0f, 1.0f, false}, {"P2", 0.0f, 1.0f, false}},
+    {"Butterfly", {"Smooth", 0.0f, 1.0f, false}, {"P2", 0.0f, 1.0f, false}},
     {"TEST", {"Freq", 50.0f, 2000.0f, false}, {"Level", 0.0f, 1.0f, false}},
 };
 
