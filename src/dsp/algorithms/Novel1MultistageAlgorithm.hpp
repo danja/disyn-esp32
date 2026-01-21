@@ -24,7 +24,7 @@ public:
         const float input = std::sin(TWO_PI * phase);
 
         const float stage1 = std::tanh(tanhDrive * input);
-        const float stage2 = stage1 * std::exp(expDepth * stage1);
+        const float stage2 = stage1 * safeExp(expDepth * stage1);
 
         modPhase = stepPhase(modPhase, pitch * ringCarrierMult, sampleRate);
         const float carrier = std::sin(TWO_PI * modPhase);

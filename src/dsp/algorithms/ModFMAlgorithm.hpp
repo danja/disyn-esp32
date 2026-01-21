@@ -26,9 +26,9 @@ public:
         const float carrier = std::cos(phase * TWO_PI);
         const float modPhaseRad = modPhase * TWO_PI;
         const float modulator = std::cos(modPhaseRad + feedback * std::sin(modPhaseRad));
-        const float envelope = std::exp(-index);
+        const float envelope = safeExp(-index);
 
-        const float output = carrier * std::exp(index * (modulator - 1.0f)) * envelope * 0.6f;
+        const float output = carrier * safeExp(index * (modulator - 1.0f)) * envelope * 0.6f;
         const float secondary = carrier * modulator * envelope * 0.6f;
         return {output, secondary};
     }

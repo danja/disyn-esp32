@@ -9,6 +9,12 @@ namespace disyn::hal {
 void Adc::begin()
 {
     analogReadResolution(12);
+    analogSetPinAttenuation(kPinCv0, ADC_11db);
+    analogSetPinAttenuation(kPinCv1, ADC_11db);
+    analogSetPinAttenuation(kPinCv2, ADC_11db);
+    analogSetPinAttenuation(kPinPot0, ADC_11db);
+    analogSetPinAttenuation(kPinPot1, ADC_11db);
+    analogSetPinAttenuation(kPinPot2, ADC_11db);
 }
 
 uint16_t Adc::readCv0() const

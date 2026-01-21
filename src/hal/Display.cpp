@@ -56,4 +56,9 @@ size_t Display::println(const char *text)
     return display_.println(text);
 }
 
+void Display::drawPixel(int16_t x, int16_t y, uint16_t color)
+{
+    display_.drawPixel(x, y, color);
+}
+
 } // namespace disyn::hal

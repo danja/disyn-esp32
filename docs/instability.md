@@ -32,4 +32,4 @@ When hot signals hit the `softClip()` function in DspTask.cpp, `tanh()` saturate
   ESP32. See `docs/danger-zones.md` before reattempting.
 
 ## Testing
-Select "Hardware" algorithm for a known-good 440Hz square wave reference. Use "TEST" algorithm with adjustable frequency/level for debugging.
+Use the "TEST" algorithm with adjustable frequency/level for debugging.

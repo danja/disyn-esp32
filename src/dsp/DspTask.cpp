@@ -2,12 +2,14 @@
 
 #include <cstring>
 #include <cmath>
+#include <algorithm>
 
 #include "IntercoreQueue.h"
 #include "Parameters.h"
 #include "PinConfig.h"
 #include "Config.h"
 #include "AlgorithmInfo.h"
+#include "ScopeData.h"
 #include "dsp/DisynEngine.hpp"
 #include "hal/AudioOutput.h"
 #include "hal/Gate.h"
@@ -24,7 +26,6 @@ static float wavefoldAmount = 0.0f;
 static bool lastGate = false;
 static float smoothPitch = 0.0f;
 static float testPhase = 0.0f;
-static float hardwarePhase = 0.0f;
 static uint8_t lastAlgorithm = 0;
 constexpr int kAudioBlockSize = 64;
 static uint16_t audioBlock[kAudioBlockSize * 2] = {};
@@ -129,17 +130,16 @@ static void Tick()
     wavefoldAmount = clamp01(params.pot0 + (params.cv0 - 0.5f) * kParamModAmount * 1.5f);
 
 
-    float pitchCv = clamp01(1.0f - params.cv2);
-    float pitchPot = clamp01(1.0f - params.pot2);
+    float pitchCv = clamp01(params.cv2);
+    float pitchPot = clamp01(params.pot2);
     float pitchControl = clamp01(pitchCv * kPitchCvMix + pitchPot * kPitchPotMix);
-    constexpr float kPitchAlpha = 0.5f;
-    smoothPitch = smoothValue(smoothPitch, pitchControl, kPitchAlpha);
-    float frequency = 55.0f + smoothPitch * (880.0f - 55.0f);
+    float pitchMin = std::max(10.0f, params.pitchMin);
+    float pitchMax = std::max(pitchMin + 1.0f, params.pitchMax);
+    float frequency = pitchMin + pitchControl * (pitchMax - pitchMin);
 
     bool forceContinuous = params.attack <= 0.0f && params.decay <= 0.0f;
     bool engineGate = gateHigh || forceContinuous;
     bool isTest = params.algorithm == disyn::kTestAlgorithmIndex;
-    bool isHardware = params.algorithm == disyn::kHardwareAlgorithmIndex;
 
     if (params.algorithm != lastAlgorithm)
     {
@@ -179,26 +179,14 @@ static void Tick()
     }
     lastGate = engineGate;
 
+    const float scopeValue = pitchCv;
     for (int i = 0; i < kAudioBlockSize; ++i)
     {
         float leftSample = 0.0f;
         float rightSample = 0.0f;
         outputGain = masterGain;
 
-        if (isHardware)
-        {
-            constexpr float kHardwareFreq = 440.0f;
-            float phaseStep = kHardwareFreq / static_cast<float>(kSampleRate);
-            hardwarePhase += phaseStep;
-            if (hardwarePhase >= 1.0f)
-            {
-                hardwarePhase -= 1.0f;
-            }
-            float tone = hardwarePhase < 0.5f ? 1.0f : -1.0f;
-            leftSample = softClip(tone * outputGain);
-            rightSample = leftSample;
-        }
-        else if (isTest)
+        if (isTest)
         {
             const auto &info = disyn::GetAlgorithmInfo(disyn::kTestAlgorithmIndex);
             float testFreq = disyn::MapNormalized(info.param1, effectiveParam1);
@@ -221,14 +209,8 @@ static void Tick()
             auto sample = engine.process();
             float primary = sample.primary;
             float secondary = sample.secondary;
-            if (!(primary > -kSampleGuardLimit && primary < kSampleGuardLimit))
-            {
-                primary = 0.0f;
-            }
-            if (!(secondary > -kSampleGuardLimit && secondary < kSampleGuardLimit))
-            {
-                secondary = 0.0f;
-            }
+            primary = clamp(primary, -kSampleGuardLimit, kSampleGuardLimit);
+            secondary = clamp(secondary, -kSampleGuardLimit, kSampleGuardLimit);
             if (kPreClipTanhDrive > 0.0f)
             {
                 primary = std::tanh(primary * kPreClipTanhDrive);
@@ -241,14 +223,13 @@ static void Tick()
         uint16_t right = sampleToDac(rightSample);
         audioBlock[i * 2] = left;
         audioBlock[i * 2 + 1] = right;
+
+        disyn::gScopeBuffer[disyn::gScopeIndex] = scopeValue;
+        disyn::gScopeIndex = (disyn::gScopeIndex + 1) % disyn::kScopeSize;
     }
 
     bool soundPlaying = engine.getIsPlaying();
-    if (isHardware)
-    {
-        soundPlaying = true;
-    }
-    else if (isTest)
+    if (isTest)
     {
         soundPlaying = engineGate;
     }

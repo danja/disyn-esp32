@@ -27,14 +27,14 @@ public:
         modPhase = stepPhase(modPhase, modifiedFreq, sampleRate);
         const float modulator = std::cos(TWO_PI * modPhase);
         const float carrier = std::cos(TWO_PI * phase);
-        const float output = carrier * std::exp(modfmIndex * (modulator - 1.0f));
+        const float output = carrier * safeExp(modfmIndex * (modulator - 1.0f));
 
         feedbackSample = output;
 
         const float shaped = std::tanh(output * drive);
-        const float scaled = shaped * 0.5f;
+        const float primary = shaped * 0.5f;
         const float secondary = output * 0.5f;
-        return {scaled, secondary};
+        return {primary, secondary};
     }
 
 private:

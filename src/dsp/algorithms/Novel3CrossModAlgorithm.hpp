@@ -37,7 +37,7 @@ public:
         modPhase = stepPhase(modPhase, pitch, sampleRate);
         secondaryPhase = stepPhase(secondaryPhase, pitch, sampleRate);
         const float mod = std::cos(TWO_PI * secondaryPhase);
-        const float modfm = std::cos(TWO_PI * modPhase) * std::exp(modfmIndex * (mod - 1.0f));
+        const float modfm = std::cos(TWO_PI * modPhase) * safeExp(modfmIndex * (mod - 1.0f));
 
         const float output = (dsf * (1.0f - mix) + modfm * mix) * 0.7f;
         const float secondary = (dsf - modfm) * 0.7f;

@@ -22,8 +22,11 @@ Menu entries (abbreviated for OLED fit):
 - **Rev Lv**: Reverb level (0.00–1.00).
 - **P1**: Algorithm parameter 1 (label changes per algorithm).
 - **P2**: Algorithm parameter 2 (label changes per algorithm).
+- **P Min**: Pitch minimum (Hz).
+- **P Max**: Pitch maximum (Hz).
 - **Mast**: Master gain (0.00–1.00).
 - **Stat**: Status/diagnostics.
+- **Scope**: CV1 oscilloscope view.
 
 ## Algorithms (Display Names)
 - **Dirichlet**: Dirichlet Pulse (Harm, Tilt)
@@ -50,7 +53,9 @@ Menu entries (abbreviated for OLED fit):
 ## CV/Pot Modulation (Default)
 - **CV0/Pot0** → Wavefolder amount
 - **CV1/Pot1** → Param 1 (normalized, moderate depth)
-- **CV2/Pot2** → Pitch
+- **CV2** → Pitch (inverted by hardware)
+- **Pot2** → Pitch (non-inverted)
+- Pitch range is set by **P Min** and **P Max**.
 - **Param 2** → Encoder only (no CV/Pot modulation)
 - **Reverb size/level** and **Master gain** modulation from CV2/Pot2 are disabled (zeroed in `include/Config.h`)
 
@@ -58,6 +63,12 @@ These amounts are defined in `include/Config.h` and can be tuned.
 
 ## Signal Path
 Oscillator → Wavefolder → Envelope → Reverb → Master gain
+
+## Scope (CV1)
+The Scope page shows a scrolling trace of CV1. When Scope is selected:
+- **Pot0** controls amplitude scale (zoom).
+- **Pot1** controls vertical offset.
+- **Pot2** controls timebase (larger values slow the trace).
 
 ## Notes
 - The wavefolder is new and may destabilize certain algorithms. If you hear unstable or low-frequency artifacts, reduce wavefolder amount or disable it by rebuilding with passthrough.

@@ -32,7 +32,7 @@ public:
         modPhase = stepPhase(modPhase, pitch, sampleRate);
         const float modulator = std::sin(TWO_PI * modPhase);
         const float carrier = std::sin(TWO_PI * phase);
-        const float base = carrier * std::exp(-modfmIndex * (std::abs(modulator) - 1.0f)) * 0.4f;
+        const float base = carrier * safeExp(-modfmIndex * (std::abs(modulator) - 1.0f)) * 0.4f;
 
         formant1Phase = stepPhase(formant1Phase, 800.0f * formantSpacing, sampleRate);
         formant2Phase = stepPhase(formant2Phase, 1200.0f * formantSpacing, sampleRate);

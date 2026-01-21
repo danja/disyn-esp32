@@ -17,13 +17,14 @@ private:
     int pinDt_ = -1;
     int pinSw_ = -1;
     int32_t position_ = 0;
-    int lastClk_ = 0;
+    uint8_t lastState_ = 0;
     int lastSwRaw_ = 1;
     int stableSw_ = 1;
     bool pressedEvent_ = false;
     bool down_ = false;
     uint32_t lastMoveUs_ = 0;
     uint32_t lastSwChangeMs_ = 0;
+    int8_t stepAccum_ = 0;
 };
 
 } // namespace disyn::hal

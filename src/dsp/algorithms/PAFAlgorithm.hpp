@@ -26,7 +26,7 @@ public:
 
         const float carrier = std::sin(secondaryPhase * TWO_PI);
         const float mod = std::sin(phase * TWO_PI);
-        const float decay = std::exp(-bandwidth / sampleRate);
+        const float decay = safeExp(-bandwidth / sampleRate);
         modPhase = decay * modPhase + (1.0f - decay) * mod;
 
         const float output = carrier * ((1.0f - depth) + depth * modPhase) * 0.5f;

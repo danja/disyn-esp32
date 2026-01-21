@@ -22,6 +22,15 @@ inline float expoMap(float value, float min, float max) {
     return min * std::pow(max / min, clamped);
 }
 
+inline float safeExp(float x) {
+    if (x > 10.0f) {
+        x = 10.0f;
+    } else if (x < -10.0f) {
+        x = -10.0f;
+    }
+    return std::exp(x);
+}
+
 inline float computeDSFComponent(float w, float t, float decay) {
     const float denominator = 1.0f - 2.0f * decay * std::cos(t) + decay * decay;
     if (std::abs(denominator) < EPSILON) {
@@ -43,7 +52,7 @@ inline float processAsymmetricFM(float param1, float param2, float frequency,
     modPhaseRef = stepPhase(modPhaseRef, modFreq, sampleRate);
 
     const float modulator = std::sin(TWO_PI * modPhaseRef);
-    const float asymmetry = std::exp(k * (r - 1.0f / r) * std::cos(TWO_PI * modPhaseRef) / 2.0f);
+    const float asymmetry = safeExp(k * (r - 1.0f / r) * std::cos(TWO_PI * modPhaseRef) / 2.0f);
     const float carrier = std::cos(TWO_PI * carrierPhaseRef + k * modulator);
 
     return carrier * asymmetry * 0.5f;

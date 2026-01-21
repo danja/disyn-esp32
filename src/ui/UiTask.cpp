@@ -10,6 +10,7 @@
 #include "IntercoreQueue.h"
 #include "Parameters.h"
 #include "PinConfig.h"
+#include "ScopeData.h"
 #include "hal/Adc.h"
 #include "hal/Display.h"
 #include "hal/Encoder.h"
@@ -21,7 +22,7 @@ struct MenuItem
     const char *label;
 };
 
-constexpr std::array<MenuItem, 9> kMenuItems = {{
+constexpr std::array<MenuItem, 12> kMenuItems = {{
     {""},
     {"Atk"},
     {"Dec"},
@@ -29,7 +30,10 @@ constexpr std::array<MenuItem, 9> kMenuItems = {{
     {"Rev Lv"},
     {"P1"},
     {"P2"},
+    {"P Min"},
+    {"P Max"},
     {"Mast"},
+    {"Scope"},
     {"Stat"},
 }};
 
@@ -74,6 +78,7 @@ static int algorithmStepAccum = 0;
 constexpr int kAlgorithmStepTicks = 2;
 constexpr float kDefaultStep = 0.1f;
 constexpr float kEnvStep = 0.1f;
+constexpr float kPitchStep = 5.0f;
 constexpr int kVisibleItems = 8;
 constexpr int kAlgIndex = 0;
 constexpr int kAtkIndex = 1;
@@ -82,8 +87,14 @@ constexpr int kRevSzIndex = 3;
 constexpr int kRevLvIndex = 4;
 constexpr int kP1Index = 5;
 constexpr int kP2Index = 6;
-constexpr int kMastIndex = 7;
-constexpr int kStatusIndex = 8;
+constexpr int kPitchMinIndex = 7;
+constexpr int kPitchMaxIndex = 8;
+constexpr int kMastIndex = 9;
+constexpr int kScopeIndex = 10;
+constexpr int kStatusIndex = 11;
+
+constexpr int kScopeSize = disyn::kScopeSize;
+static int scopeTriggerIndex = 0;
 
 static float smoothValue(float current, float target, float alpha)
 {
@@ -171,8 +182,16 @@ static void adjustCurrentValue(int delta)
             params.param2 = clamp(params.param2 + delta * kDefaultStep, 0.0f, 1.0f);
         }
         break;
+    case kPitchMinIndex:
+        params.pitchMin = clamp(params.pitchMin + delta * kPitchStep, 10.0f, 4000.0f);
+        break;
+    case kPitchMaxIndex:
+        params.pitchMax = clamp(params.pitchMax + delta * kPitchStep, 20.0f, 8000.0f);
+        break;
     case kMastIndex:
         params.masterGain = clamp(params.masterGain + delta * kDefaultStep, 0.0f, 1.0f);
+        break;
+    case kScopeIndex:
         break;
     case kStatusIndex:
         break;
@@ -237,8 +256,17 @@ static void formatValue(int index, char *buffer, size_t bufferSize)
             }
         }
         break;
+    case kPitchMinIndex:
+        snprintf(buffer, bufferSize, "%d", static_cast<int>(params.pitchMin + 0.5f));
+        break;
+    case kPitchMaxIndex:
+        snprintf(buffer, bufferSize, "%d", static_cast<int>(params.pitchMax + 0.5f));
+        break;
     case kMastIndex:
         dtostrf(params.masterGain, 0, 2, buffer);
+        break;
+    case kScopeIndex:
+        snprintf(buffer, bufferSize, "-");
         break;
     case kStatusIndex:
         snprintf(buffer, bufferSize, "-");
@@ -429,6 +457,66 @@ static void Tick()
     display.clear();
     display.setCursor(0, 0);
 
+    if (currentIndex == kScopeIndex)
+    {
+        const float scopeScale = 0.25f + params.pot0 * 3.75f;
+        const float scopeOffset = (params.pot1 - 0.5f) * 1.0f;
+        const float logStep = std::pow(10.0f, params.pot2 * 3.0f);
+        const int scopeStep = clamp(static_cast<int>(logStep + 0.5f), 1, 1024);
+        float bufMin = disyn::gScopeBuffer[0];
+        float bufMax = disyn::gScopeBuffer[0];
+        for (int i = 1; i < kScopeSize; ++i)
+        {
+            bufMin = std::min(bufMin, disyn::gScopeBuffer[i]);
+            bufMax = std::max(bufMax, disyn::gScopeBuffer[i]);
+        }
+        if (bufMax - bufMin < 0.01f)
+        {
+            bufMin = 0.0f;
+            bufMax = 1.0f;
+        }
+
+        const float triggerLevel = (bufMin + bufMax) * 0.5f;
+        const int holdoff = clamp(scopeStep * 4, 1, kScopeSize);
+        int triggerIndex = -1;
+        int sinceTrigger = holdoff;
+        int scopeIndex = static_cast<int>(disyn::gScopeIndex);
+        float prev = disyn::gScopeBuffer[(scopeIndex - 1 + kScopeSize) % kScopeSize];
+        for (int i = 0; i < kScopeSize; ++i)
+        {
+            int index = (scopeIndex + i) % kScopeSize;
+            float value = disyn::gScopeBuffer[index];
+            if (sinceTrigger >= holdoff && prev < triggerLevel && value >= triggerLevel)
+            {
+                triggerIndex = index;
+                sinceTrigger = 0;
+            }
+            else
+            {
+                ++sinceTrigger;
+            }
+            prev = value;
+        }
+        if (triggerIndex >= 0)
+        {
+            scopeTriggerIndex = triggerIndex;
+        }
+        int startIndex = scopeTriggerIndex;
+        for (int x = 0; x < kScopeSize; ++x)
+        {
+            int index = (startIndex + x * scopeStep) % kScopeSize;
+            float value = disyn::gScopeBuffer[index];
+            float normalized = (value - 0.5f) * scopeScale + 0.5f + scopeOffset;
+            int y = 63 - static_cast<int>(clamp(normalized, 0.0f, 1.0f) * 63.0f);
+            y = clamp(y, 0, 63);
+            display.drawPixel(x, y, 1);
+        }
+        char line[22] = {0};
+        snprintf(line, sizeof(line), "S%.2f O%.2f T%d", scopeScale, scopeOffset, scopeStep);
+        display.println(line);
+        display.display();
+        return;
+    }
     if (currentIndex == kStatusIndex)
     {
         char line[22] = {0};

@@ -44,7 +44,7 @@ public:
             secondaryPhase = stepPhase(secondaryPhase, pitch, sampleRate);
             const float modfmIndex = expoMap(character, 0.01f, 8.0f);
             const float mod = std::cos(TWO_PI * secondaryPhase);
-            const float modfm = std::cos(TWO_PI * modPhase) * std::exp(modfmIndex * (mod - 1.0f));
+            const float modfm = std::cos(TWO_PI * modPhase) * safeExp(modfmIndex * (mod - 1.0f));
 
             output = dsf * (1.0f - alpha) + modfm * alpha;
             secondary = modfm;
@@ -55,7 +55,7 @@ public:
             secondaryPhase = stepPhase(secondaryPhase, pitch, sampleRate);
             const float modfmIndex = expoMap(character, 0.01f, 8.0f);
             const float mod = std::cos(TWO_PI * secondaryPhase);
-            const float modfm = std::cos(TWO_PI * modPhase) * std::exp(modfmIndex * (mod - 1.0f));
+            const float modfm = std::cos(TWO_PI * modPhase) * safeExp(modfmIndex * (mod - 1.0f));
 
             formant1Phase = stepPhase(formant1Phase, pitch * 2.0f, sampleRate);
             const float paf = std::sin(TWO_PI * formant1Phase) * 0.5f;
