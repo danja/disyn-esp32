@@ -31,7 +31,7 @@ public:
         const float raw = square * (1.0f - blend) + saw * blend;
         const float output = std::tanh(raw);
         const float secondary = square;
-        return {output, secondary};
+        return {clampAudio(output), clampAudio(secondary)};
     }
 
 private:

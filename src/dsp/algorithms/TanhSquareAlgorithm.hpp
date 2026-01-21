@@ -21,9 +21,9 @@ public:
 
         phase = stepPhase(phase, pitch, sampleRate);
         const float carrier = std::sin(phase * TWO_PI) + bias;
-        const float output = std::tanh(carrier * drive) * trim;
-        const float secondary = std::tanh(std::sin(phase * TWO_PI) * drive) * trim;
-        return {output, secondary};
+        const float output = clampAbs(std::tanh(carrier * drive) * trim, 1.0f);
+        const float secondary = clampAbs(std::tanh(std::sin(phase * TWO_PI) * drive) * trim, 1.0f);
+        return {clampAudio(output), clampAudio(secondary)};
     }
 
 private:

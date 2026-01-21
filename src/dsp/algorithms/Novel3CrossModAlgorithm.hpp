@@ -31,8 +31,8 @@ public:
         phase = stepPhase(phase, pitch, sampleRate);
         const float theta = TWO_PI * dsfRatio;
         const float denom = 1.0f - 2.0f * baseDsfDecay * std::cos(theta) + baseDsfDecay * baseDsfDecay;
-        const float dsf = (std::sin(TWO_PI * phase) - baseDsfDecay * std::sin(TWO_PI * phase - theta))
-            / (denom + EPSILON);
+        const float dsf = clampAbs((std::sin(TWO_PI * phase) - baseDsfDecay * std::sin(TWO_PI * phase - theta))
+            / (denom + EPSILON), 1.0f);
 
         modPhase = stepPhase(modPhase, pitch, sampleRate);
         secondaryPhase = stepPhase(secondaryPhase, pitch, sampleRate);
@@ -41,7 +41,7 @@ public:
 
         const float output = (dsf * (1.0f - mix) + modfm * mix) * 0.7f;
         const float secondary = (dsf - modfm) * 0.7f;
-        return {output, secondary};
+        return {clampAudio(output), clampAudio(secondary)};
     }
 
 private:

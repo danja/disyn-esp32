@@ -31,7 +31,7 @@ public:
 
         const float output = carrier * ((1.0f - depth) + depth * modPhase) * 0.5f;
         const float secondary = carrier * (0.5f + 0.5f * modPhase) * 0.5f;
-        return {output, secondary};
+        return {clampAudio(output), clampAudio(secondary)};
     }
 
 private:

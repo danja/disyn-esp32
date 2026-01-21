@@ -24,7 +24,7 @@ public:
         const float input = std::sin(TWO_PI * phase);
 
         const float stage1 = std::tanh(tanhDrive * input);
-        const float stage2 = stage1 * safeExp(expDepth * stage1);
+        const float stage2 = clampAbs(stage1 * safeExp(expDepth * stage1), 1.5f);
 
         modPhase = stepPhase(modPhase, pitch * ringCarrierMult, sampleRate);
         const float carrier = std::sin(TWO_PI * modPhase);
@@ -32,7 +32,7 @@ public:
 
         const float output = stage3 * 0.25f;
         const float secondary = stage2 * 0.25f;
-        return {output, secondary};
+        return {clampAudio(output), clampAudio(secondary)};
     }
 
 private:

@@ -26,18 +26,20 @@ public:
         const float denominator = std::sin(theta * 0.5f);
 
         float value;
-        if (std::abs(denominator) < EPSILON) {
-            value = 1.0f;
+        if (std::abs(denominator) < 1e-3f) {
+            const float safeDenom = (denominator < 0.0f ? -1e-3f : 1e-3f);
+            value = (numerator / safeDenom) - 1.0f;
         } else {
             value = (numerator / denominator) - 1.0f;
         }
 
         const float tiltFactor = std::pow(10.0f, tilt / 20.0f);
         const float base = (value / static_cast<float>(harmonics)) * tiltFactor;
-        const float shaped = std::tanh(base * (1.0f + shape * 4.0f));
-        const float output = base * (1.0f - shape) + shaped * shape;
-        const float secondary = base;
-        return {output, secondary};
+        const float limitedBase = clampAbs(base, 1.5f);
+        const float shaped = std::tanh(limitedBase * (1.0f + shape * 4.0f));
+        const float output = limitedBase * (1.0f - shape) + shaped * shape;
+        const float secondary = limitedBase;
+        return {clampAudio(output), clampAudio(secondary)};
     }
 
 private:

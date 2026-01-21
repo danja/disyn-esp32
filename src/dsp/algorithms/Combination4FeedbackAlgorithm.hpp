@@ -34,7 +34,7 @@ public:
         const float shaped = std::tanh(output * drive);
         const float primary = shaped * 0.5f;
         const float secondary = output * 0.5f;
-        return {primary, secondary};
+        return {clampAudio(primary), clampAudio(secondary)};
     }
 
 private:

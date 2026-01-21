@@ -30,7 +30,7 @@ public:
 
         const float output = carrier * safeExp(index * (modulator - 1.0f)) * envelope * 0.6f;
         const float secondary = carrier * modulator * envelope * 0.6f;
-        return {output, secondary};
+        return {clampAudio(output), clampAudio(secondary)};
     }
 
 private:

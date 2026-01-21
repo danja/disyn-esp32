@@ -26,11 +26,11 @@ public:
         const float w = phase * TWO_PI;
         const float t = secondaryPhase * TWO_PI;
 
-        const float dsf = computeDSFComponent(w, t, decay) * 0.5f;
+        const float dsf = clampAbs(computeDSFComponent(w, t, decay), 1.0f) * 0.5f;
         const float sine = std::sin(w) * 0.5f;
         const float output = dsf * (1.0f - mix) + sine * mix;
         const float secondary = dsf;
-        return {output, secondary};
+        return {clampAudio(output), clampAudio(secondary)};
     }
 
 private:

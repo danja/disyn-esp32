@@ -33,7 +33,7 @@ public:
         const float output = processAsymmetricFM(index, r / 2.0f, pitch, sampleRate, phase, modPhase);
         const float mod = std::sin(TWO_PI * modPhase);
         const float secondary = std::cos(TWO_PI * phase + index * mod) * 0.5f;
-        return {output, secondary};
+        return {clampAudio(output), clampAudio(secondary)};
     }
 
 private:

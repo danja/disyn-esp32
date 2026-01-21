@@ -31,12 +31,12 @@ public:
         const float tPos = secondaryPhase * TWO_PI;
         const float tNeg = -secondaryPhaseNeg * TWO_PI;
 
-        const float positive = computeDSFComponent(w, tPos, decay);
-        const float negative = computeDSFComponent(w, tNeg, decay);
+        const float positive = clampAbs(computeDSFComponent(w, tPos, decay), 1.0f);
+        const float negative = clampAbs(computeDSFComponent(w, tNeg, decay), 1.0f);
 
         const float output = 0.5f * (positive * weightPos + negative * weightNeg);
         const float secondary = 0.5f * (positive - negative);
-        return {output, secondary};
+        return {clampAudio(output), clampAudio(secondary)};
     }
 
 private:

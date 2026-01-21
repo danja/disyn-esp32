@@ -58,7 +58,7 @@ public:
         const float pafMix = (paf1 + paf2) / 2.0f;
         const float output = (modfmMix * (1.0f - mixBalance) + pafMix * mixBalance) * 0.5f;
         const float secondary = (pafMix - modfmMix) * 0.5f;
-        return {output, secondary};
+        return {clampAudio(output), clampAudio(secondary)};
     }
 
 private:

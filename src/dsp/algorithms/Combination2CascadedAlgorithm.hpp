@@ -24,8 +24,8 @@ public:
         phase = stepPhase(phase, pitch, sampleRate);
         const float theta = TWO_PI * 1.5f;
         const float denom = 1.0f - 2.0f * dsfDecay * std::cos(theta) + dsfDecay * dsfDecay;
-        const float stage1 = (std::sin(TWO_PI * phase) - dsfDecay * std::sin(TWO_PI * phase - theta))
-            / (denom + EPSILON);
+        const float stage1 = clampAbs((std::sin(TWO_PI * phase) - dsfDecay * std::sin(TWO_PI * phase - theta))
+            / (denom + EPSILON), 1.0f);
 
         const float stage2 = processAsymmetricFM(std::abs(stage1), asymRatio, pitch, sampleRate,
                                                  cascade1Phase, cascade2Phase);
@@ -33,7 +33,7 @@ public:
         const float stage3 = std::tanh(stage2 * tanhDrive);
         const float output = stage3 * 0.6f;
         const float secondary = stage2 * 0.6f;
-        return {output, secondary};
+        return {clampAudio(output), clampAudio(secondary)};
     }
 
 private:

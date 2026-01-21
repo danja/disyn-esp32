@@ -24,8 +24,8 @@ public:
         phase = stepPhase(phase, pitch, sampleRate);
         const float theta = TWO_PI * phiRatio;
         const float denom = 1.0f - 2.0f * dsfDecay * std::cos(theta) + dsfDecay * dsfDecay;
-        const float dsf = (std::sin(TWO_PI * phase) - dsfDecay * std::sin(TWO_PI * phase - theta))
-            / (denom + EPSILON);
+        const float dsf = clampAbs((std::sin(TWO_PI * phase) - dsfDecay * std::sin(TWO_PI * phase - theta))
+            / (denom + EPSILON), 1.0f);
 
         const float formantFreq = pitch * 2.0f + pafShift;
         formant1Phase = stepPhase(formant1Phase, formantFreq, sampleRate);
@@ -33,7 +33,7 @@ public:
 
         const float output = dsf * (1.0f - mix) + paf * mix;
         const float secondary = dsf;
-        return {output, secondary};
+        return {clampAudio(output), clampAudio(secondary)};
     }
 
 private:

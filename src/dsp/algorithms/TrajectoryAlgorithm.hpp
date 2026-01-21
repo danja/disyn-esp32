@@ -68,7 +68,7 @@ public:
         position = current;
         velocity = currentVelocity;
 
-        return {position.x, position.y};
+        return {clampAudio(position.x), clampAudio(position.y)};
     }
 
 private:
