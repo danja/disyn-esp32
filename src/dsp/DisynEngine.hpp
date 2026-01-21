@@ -75,10 +75,10 @@ namespace flues::disyn
             float secondary = oscOutput.secondary;
             const float foldGain = getAlgorithmFoldGain(algorithmType);
             const float outputGain = getAlgorithmOutputGain(algorithmType);
-            const float preFoldPrimary = std::tanh(primary * foldGain);
-            const float preFoldSecondary = std::tanh(secondary * foldGain);
-            const float foldedPrimary = std::tanh(wavefolder.process(preFoldPrimary, wavefoldAmount));
-            const float foldedSecondary = std::tanh(wavefolder.process(preFoldSecondary, wavefoldAmount));
+            const float preFoldPrimary = primary * foldGain;
+            const float preFoldSecondary = secondary * foldGain;
+            const float foldedPrimary = wavefolder.process(preFoldPrimary, wavefoldAmount);
+            const float foldedSecondary = wavefolder.process(preFoldSecondary, wavefoldAmount);
 
             // Apply envelope
             const float env = envelope.process();
