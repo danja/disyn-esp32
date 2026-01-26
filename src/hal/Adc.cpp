@@ -1,11 +1,25 @@
 #include "hal/Adc.h"
 
 #include <Arduino.h>
+#include <driver/adc.h>
 
 #include "PinConfig.h"
 
 namespace disyn::hal
 {
+
+    namespace
+    {
+        constexpr adc1_channel_t kCv0Channel = ADC1_CHANNEL_0; // GPIO36
+        constexpr adc1_channel_t kCv1Channel = ADC1_CHANNEL_3; // GPIO39
+        bool sUseIdf = false;
+
+        uint16_t readAdc1(adc1_channel_t channel)
+        {
+            const int raw = adc1_get_raw(channel);
+            return raw < 0 ? 0u : static_cast<uint16_t>(raw);
+        }
+    } // namespace
 
     void Adc::begin()
     {
@@ -32,16 +46,22 @@ namespace disyn::hal
         analogSetPinAttenuation(kPinPot0, ADC_11db);
         analogSetPinAttenuation(kPinPot1, ADC_11db);
         analogSetPinAttenuation(kPinPot2, ADC_11db);
+
+        // ESP-IDF ADC1 setup for GPIO36/39 to avoid Arduino attach issues on these pins.
+        adc1_config_width(ADC_WIDTH_BIT_12);
+        adc1_config_channel_atten(kCv0Channel, ADC_ATTEN_DB_11);
+        adc1_config_channel_atten(kCv1Channel, ADC_ATTEN_DB_11);
+        sUseIdf = true;
     }
 
     uint16_t Adc::readCv0() const
     {
-        return analogRead(kPinCv0);
+        return sUseIdf ? readAdc1(kCv0Channel) : analogRead(kPinCv0);
     }
 
     uint16_t Adc::readCv1() const
     {
-        return analogRead(kPinCv1);
+        return sUseIdf ? readAdc1(kCv1Channel) : analogRead(kPinCv1);
     }
 
     uint16_t Adc::readCv2() const
