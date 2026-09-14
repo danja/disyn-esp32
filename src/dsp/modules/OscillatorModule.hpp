@@ -165,23 +165,15 @@ public:
 
 private:
     static bool isAlgorithmActive(AlgorithmType algorithm) {
-        // Active set from latest listening pass; disabled ones should remain silent for now.
-        switch (algorithm) {
-            case AlgorithmType::DIRICHLET_PULSE:
-            case AlgorithmType::COMBINATION_1_HYBRID_FORMANT:
-            case AlgorithmType::NOVEL_4_TAYLOR:
-            case AlgorithmType::TRAJECTORY:
-            case AlgorithmType::SINE:
-            case AlgorithmType::RAMP:
-            case AlgorithmType::TRIANGLE:
-            case AlgorithmType::PULSE:
-            case AlgorithmType::NOISE:
-            case AlgorithmType::LOGISTIC:
-            case AlgorithmType::BUTTERFLY:
-                return true;
-            default:
-                return false;
-        }
+        // Previously this muted 15 of the 26 algorithms, matching the b/s/i
+        // verdicts in docs/bads.md. A host-side sweep (tools/audit_algorithms.cpp)
+        // showed none of them are actually silent or unstable at the source --
+        // Cascade and AFilter are among the loudest. They were inaudible because
+        // getAlgorithmFoldGain attenuated them by up to 2500x with nothing
+        // restoring the level. That is fixed in DisynEngine, so all algorithms
+        // are enabled again.
+        (void)algorithm;
+        return true;
     }
 
     AlgorithmOutput processSine(float pitch) {

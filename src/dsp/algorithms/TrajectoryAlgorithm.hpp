@@ -45,7 +45,7 @@ public:
         Vec2 current = position;
         Vec2 currentVelocity = velocity;
 
-        for (int bounce = 0; bounce < 2; ++bounce) {
+        for (int bounce = 0; bounce < kMaxBounces; ++bounce) {
             const Vec2 next = {current.x + currentVelocity.x, current.y + currentVelocity.y};
 
             if (isInside(next)) {
@@ -67,6 +67,20 @@ public:
                 next.y - hit.normal.y * (hit.distance + nudge)
             };
             currentVelocity = jittered;
+        }
+
+        // A fast trajectory can cross a corner and exhaust the bounce budget while
+        // still outside the polygon. Committing that position let it run away
+        // (measured 28x amplitude growth over a note). Pull it back inside.
+        if (!isInside(current)) {
+            const float magnitude = std::hypot(current.x, current.y);
+            const float safeRadius = inradius * 0.95f;
+            if (magnitude > 1e-6f) {
+                const float scale = safeRadius / magnitude;
+                current = {current.x * scale, current.y * scale};
+            } else {
+                current = {0.0f, 0.0f};
+            }
         }
 
         position = current;
@@ -143,6 +157,8 @@ private:
         edges.clear();
 
         const float rotation = static_cast<float>(M_PI) / static_cast<float>(sides);
+        // Vertices sit on the unit circle, so the inscribed radius is cos(pi/sides).
+        inradius = std::cos(static_cast<float>(M_PI) / static_cast<float>(sides));
         vertices.reserve(static_cast<size_t>(sides));
 
         for (int i = 0; i < sides; ++i) {
@@ -289,8 +305,11 @@ private:
         return static_cast<float>((rngState >> 8) & 0xFFFFFF) / 16777216.0f;
     }
 
+    static constexpr int kMaxBounces = 4;
+
     float sampleRate;
     int sides;
+    float inradius = 0.5f;
     float startAngle;
     float startPositionAngle;
     float bounceJitter;

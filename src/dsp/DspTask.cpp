@@ -127,11 +127,12 @@ static void Tick()
         effectiveParam2 = clamp01(params.param2);
     }
 
-    wavefoldAmount = clamp01(params.pot0 + (params.cv0 - 0.5f) * kParamModAmount * 1.5f);
+    // Channel 0 is pitch, channel 2 is wavefolder. Each jack pair (CVn + Potn)
+    // drives the same destination; see docs/manual.md.
+    wavefoldAmount = clamp01(params.pot2 + (params.cv2 - 0.5f) * kParamModAmount * 1.5f);
 
-
-    float pitchCv = clamp01(params.cv2);
-    float pitchPot = clamp01(params.pot2);
+    float pitchCv = clamp01(params.cv0);
+    float pitchPot = clamp01(params.pot0);
     float pitchControl = clamp01(pitchCv * kPitchCvMix + pitchPot * kPitchPotMix);
     float pitchMin = std::max(10.0f, params.pitchMin);
     float pitchMax = std::max(pitchMin + 1.0f, params.pitchMax);
@@ -148,6 +149,9 @@ static void Tick()
         lastAlgorithm = params.algorithm;
     }
 
+    // Secondary mod taps, all zeroed in include/Config.h so they are inert. Left
+    // on channel 2 (the same physical jacks as before the pitch/wavefolder swap);
+    // enabling them would make channel 2 drive the wavefolder AND these.
     float reverbSize = clamp01(params.reverbSize + (params.cv2 - 0.5f) * kReverbSizeCvAmount +
                                (params.pot2 - 0.5f) * kReverbSizePotAmount);
     float reverbLevel = clamp01(params.reverbLevel + (params.cv2 - 0.5f) * kReverbLevelCvAmount +
@@ -216,8 +220,11 @@ static void Tick()
                 primary = std::tanh(primary * kPreClipTanhDrive);
                 secondary = std::tanh(secondary * kPreClipTanhDrive);
             }
-            leftSample = softClip(primary * outputGain * kGlobalPreGain);
-            rightSample = softClip(secondary * outputGain * kGlobalPreGain);
+            // No outputGain here: DisynEngine::process() already applies masterGain
+            // internally. Multiplying again squared it and made every algorithm
+            // roughly half as loud as intended.
+            leftSample = softClip(primary * kGlobalPreGain);
+            rightSample = softClip(secondary * kGlobalPreGain);
         }
         uint16_t left = sampleToDac(leftSample);
         uint16_t right = sampleToDac(rightSample);

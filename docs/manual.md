@@ -7,9 +7,9 @@ Disyn ESP32 is a Eurorack module built around an ESP32 DevKit V1. It runs a dual
 - **Encoder rotate**: Adjusts the current parameter value.
 - **Encoder press**: Cycles to the next parameter.
 - **Gate In**: Triggers the envelope; when Attack=0 and Decay=0, the output is continuous at max level.
-- **Pot0/CV0**: Wavefolder amount (post-oscillator).
+- **Pot0/CV0**: Pitch control.
 - **Pot1/CV1**: Algorithm Param 1 modulation.
-- **Pot2/CV2**: Pitch control.
+- **Pot2/CV2**: Wavefolder amount (post-oscillator).
 
 ## UI Pages
 The OLED menu shows a short list with the current selection indicated by `>`.
@@ -51,21 +51,21 @@ Menu entries (abbreviated for OLED fit):
 - **TEST**: Test tone + diagnostics (Freq, Level)
 
 ## CV/Pot Modulation (Default)
-- **CV0/Pot0** → Wavefolder amount
+- **CV0** → Pitch (inverted by hardware, corrected in `include/Calibration.h`)
+- **Pot0** → Pitch (non-inverted)
 - **CV1/Pot1** → Param 1 (normalized, moderate depth)
-- **CV2** → Pitch (inverted by hardware)
-- **Pot2** → Pitch (non-inverted)
+- **CV2/Pot2** → Wavefolder amount
 - Pitch range is set by **P Min** and **P Max**.
 - **Param 2** → Encoder only (no CV/Pot modulation)
-- **Reverb size/level** and **Master gain** modulation from CV2/Pot2 are disabled (zeroed in `include/Config.h`)
+- **Reverb size/level** and **Master gain** modulation from CV2/Pot2 are disabled (zeroed in `include/Config.h`). If re-enabled they would stack on top of the wavefolder on the same jacks.
 
 These amounts are defined in `include/Config.h` and can be tuned.
 
 ## Signal Path
 Oscillator → Wavefolder → Envelope → Reverb → Master gain
 
-## Scope (CV1)
-The Scope page shows a scrolling trace of CV1. When Scope is selected:
+## Scope (pitch CV)
+The Scope page shows a scrolling trace of the pitch CV (CV0). When Scope is selected:
 - **Pot0** controls amplitude scale (zoom).
 - **Pot1** controls vertical offset.
 - **Pot2** controls timebase (larger values slow the trace).
