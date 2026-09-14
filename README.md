@@ -21,7 +21,12 @@ Disyn ESP32 is a Eurorack module built around an ESP32 DevKit V1. It runs the UI
 - Pot0/Pot1/Pot2 inputs
 - DAC1/DAC2 outputs
 
-Pin mapping is in `include/PinConfig.h`.
+Pin mapping is in `include/PinConfig.h`, and the full wiring table is in
+`docs/requirements.md`.
+
+**Rewiring required:** the encoder and Pot1/Pot2 have moved pins so that all six
+analog inputs sit on ADC1 — ADC2 cannot be read while the I2S built-in DAC is
+running. See `docs/hardware-fixes.md` before flashing.
 
 ## Build
 This project uses PlatformIO.
@@ -31,6 +36,39 @@ pio run
 ```
 
 Set sample rate with `DISYN_SAMPLE_RATE` in `platformio.ini` or `include/Config.h`.
+
+## Flashing
+Connect the ESP32 DevKit V1 to the machine over USB, then build and write the firmware:
+
+```bash
+pio run --target upload
+```
+
+PlatformIO auto-detects the serial port. To pick one explicitly:
+
+```bash
+pio device list
+pio run --target upload --upload-port /dev/ttyUSB0
+```
+
+On Linux, serial access needs the PlatformIO udev rules and membership of the
+`dialout` group (log out and back in afterwards):
+
+```bash
+sudo cp 99-platformio-udev.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules && sudo udevadm trigger
+sudo usermod -aG dialout $USER
+```
+
+If upload fails to sync, hold the BOOT button while the upload starts and release
+once it begins writing. To watch the serial output afterwards:
+
+```bash
+pio device monitor
+```
+
+The monitor runs at 115200 baud (`monitor_speed` in `platformio.ini`). If the device
+is in a bad state, erase it with `pio run --target erase` before uploading again.
 
 ## Usage
 - Rotate encoder for values

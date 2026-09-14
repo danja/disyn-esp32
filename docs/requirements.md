@@ -31,24 +31,25 @@ GND      Ov IN also to Display etc.
 22 Display SCL
 
 16 Encoder 1 SW
-34 Encoder 1 CLK
-35 Encoder 1 DT
+14 Encoder 1 CLK
+13 Encoder 1 DT
 
-36 ADC CV0
-39 ADC CV1
-32 ADC CV2
+36 ADC CV0   (ADC1_CH0)
+39 ADC CV1   (ADC1_CH3)
+32 ADC CV2   (ADC1_CH4)
 
-33 ADC Pot0
-27 ADC Pot1
-4 ADC Pot2
+33 ADC Pot0  (ADC1_CH5)
+34 ADC Pot1  (ADC1_CH6)
+35 ADC Pot2  (ADC1_CH7)
 
 18 Gate In
 19 Gate Out
 
-12 (JTAG TDI)
-13 (JTAG TCK)
-14 (JTAG TMS)
-15 (JTAG TDO)
+Free: 12 (JTAG TDI, strapping), 15 (JTAG TDO, strapping), 27, 4, 5, 17, 23, 2, 0
+
+All six analog inputs must stay on ADC1. ADC2 (GPIO 4, 27, 0, 2, 15, 13, 12, 14)
+cannot be read while the I2S built-in DAC is running on GPIO25/26 -- see
+docs/hardware-fixes.md.
 
 ## User Interface
 

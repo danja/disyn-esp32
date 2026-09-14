@@ -1,3 +1,4 @@
 {
-    "idf.pythonInstallPath": "/usr/bin/python"
+    "idf.pythonInstallPath": "/usr/bin/python",
+    "cmake.sourceDirectory": "/home/danny/github/disyn-esp32/reference/disyn-lv2"
 }

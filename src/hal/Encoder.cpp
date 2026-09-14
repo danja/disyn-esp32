@@ -10,8 +10,10 @@ void Encoder::begin(int pinClk, int pinDt, int pinSw)
     pinDt_ = pinDt;
     pinSw_ = pinSw;
 
-    pinMode(pinClk_, INPUT);
-    pinMode(pinDt_, INPUT);
+    // CLK/DT moved off GPIO34/35 (input-only, no internal pull-ups) to 14/13,
+    // which do have them. External pull-ups are now optional.
+    pinMode(pinClk_, INPUT_PULLUP);
+    pinMode(pinDt_, INPUT_PULLUP);
     pinMode(pinSw_, INPUT_PULLUP);
 
     int clk = digitalRead(pinClk_);
